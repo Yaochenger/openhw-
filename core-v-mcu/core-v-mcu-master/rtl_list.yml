@@ -1,0 +1,83 @@
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+common_cells:
+  path: vendor/pulp_platform_common_cells
+axi:
+  path: vendor/pulp_platform_axi
+fpnew:
+  path: vendor/pulp_platform_fpnew
+cv32e40p:
+  path: vendor/openhwgroup_cv32e40p
+register_interface:
+  path: vendor/pulp_platform_register_interface
+riscv-dbg:
+  path: vendor/pulp_platform_riscv_dbg
+tech_cells_generic:
+  path: vendor/pulp_platform_tech_cells_generic
+
+efpga:
+  path: efpga
+
+# TODO(timsaxe): Add source files to `core-v-mcu`
+# ql_fcb:
+#   path: ql_fcb
+# ql_math_unit:
+#   path: ql_math_unit
+
+L2_tcdm_hybrid_interco:
+  path: L2_tcdm_hybrid_interco
+tcdm_interconnect:
+  path: tcdm_interconnect
+
+apb2per:
+  path: apb2per
+apb_adv_timer:
+  path: apb_adv_timer
+apb_fll_if:
+  path: apb_fll_if
+apb_gpio:
+  path: apb_gpio
+apb_node:
+  path: apb_node
+apb2apbcomp:
+  path: apb2apbcomp
+apb_interrupt_cntrl:
+  path: apb_interrupt_cntrl
+apb_timer_unit:
+  path: apb_timer_unit
+
+axi_slice:
+  path: axi_slice
+# TODO(zarubaf,timsaxe): Make Ibex and other upcoming cores configurable here.
+#ibex:
+#  path: #ibex
+generic_FLL:
+  path: generic_FLL
+udma/udma_core:
+  path: udma/udma_core
+udma/udma_uart:
+  path: udma/udma_uart
+udma/udma_i2c:
+  path: udma/udma_i2c
+udma/udma_i2s:
+  path: udma/udma_i2s
+udma/udma_qspi:
+  path: udma/udma_qspi
+udma/udma_sdio:
+  path: udma/udma_sdio
+udma/udma_camera:
+  path: udma/udma_camera
+udma/udma_filter:
+  path: udma/udma_filter
+udma/udma_external_per:
+  path: udma/udma_external_per
+logint_dc_fifo_xbar:
+  path: logint_dc_fifo_xbar
+core-v-mcu:
+  path: core-v-mcu
+tb:
+  path: tb
+vip:
+  path: vip

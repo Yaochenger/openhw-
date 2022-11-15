@@ -1,0 +1,4 @@
+apb_gpio:
+  files: [
+    ./rtl/gpiov2.sv,
+  ]
