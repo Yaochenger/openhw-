@@ -1,0 +1,3569 @@
+diff --git a/cli_test/.gitignore b/cli_test/.gitignore
+index 42d0f51..3986aa6 100755
+--- a/cli_test/.gitignore
++++ b/cli_test/.gitignore
+@@ -1,4 +1,6 @@
+ .settings/language.settings.xml
+ openocd.log
++*.o
++*.su
+ uart_test
+ /Default/
+diff --git a/cli_test/FreeRTOSConfig.h b/cli_test/FreeRTOSConfig.h
+deleted file mode 100755
+index af6149f..0000000
+--- a/cli_test/FreeRTOSConfig.h
++++ /dev/null
+@@ -1,141 +0,0 @@
+-/*
+- * FreeRTOS Kernel V10.3.0
+- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+- * Copyright (C) 2020 ETH Zurich
+- *
+- * Permission is hereby granted, free of charge, to any person obtaining a copy of
+- * this software and associated documentation files (the "Software"), to deal in
+- * the Software without restriction, including without limitation the rights to
+- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+- * the Software, and to permit persons to whom the Software is furnished to do so,
+- * subject to the following conditions:
+- *
+- * The above copyright notice and this permission notice shall be included in all
+- * copies or substantial portions of the Software.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+- *
+- * http://www.FreeRTOS.org
+- * http://aws.amazon.com/freertos
+- *
+- * 1 tab == 4 spaces!
+- */
+-
+-#ifndef FREERTOS_CONFIG_H
+-#define FREERTOS_CONFIG_H
+-
+-/* #include "clock_config.h" */ /* TODO: figure out our FLL/clock setup */
+-
+-#define DEFAULT_SYSTEM_CLOCK 5000000u /* Default System clock value */
+-
+-/*-----------------------------------------------------------
+- * Application specific definitions.
+- *
+- * These definitions should be adjusted for your particular hardware and
+- * application requirements.
+- *
+- * THESE PARAMETERS ARE DESCRIBED WITHIN THE 'CONFIGURATION' SECTION OF THE
+- * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE.
+- *
+- * See http://www.freertos.org/a00110.html.
+- *----------------------------------------------------------*/
+-
+-#include <stddef.h>
+-#ifdef __PULP_USE_LIBC
+-#include <assert.h>
+-#endif
+-
+-/* Ensure stdint is only used by the compiler, and not the assembler. */
+-#if defined(__GNUC__)
+-#include <stdint.h>
+-#endif
+-/* There is no CLINT so the base address must be set to 0. */
+-#define configCLINT_BASE_ADDRESS 0
+-#define configMTIME_BASE_ADDRESS (0x1A10b008)
+-#define configMTIMECMP_BASE_ADDRESS (0x1A10b010)
+-#define configUSE_PREEMPTION		1
+-#define configUSE_TICKLESS_IDLE		1
+-#define configUSE_IDLE_HOOK	 		0
+-#define configUSE_TICK_HOOK	 		0
+-#define configCPU_CLOCK_HZ	 		DEFAULT_SYSTEM_CLOCK
+-#define configTICK_RATE_HZ	 		((TickType_t)1000)
+-#define configMAX_PRIORITIES	 	(5)
+-/* Can be as low as 60 but some of the demo tasks that use this constant require it to be higher. */
+-#define configMINIMAL_STACK_SIZE ((unsigned short)800)
+-/* we want to put the heap into special section */
+-#define configAPPLICATION_ALLOCATED_HEAP 1
+-#define configTOTAL_HEAP_SIZE		 ((size_t)(64 * 1024))
+-#define configMAX_TASK_NAME_LEN		 (16)
+-#define configUSE_TRACE_FACILITY	 1 /* TODO: 0 */
+-#define configUSE_16_BIT_TICKS		 0
+-#define configIDLE_SHOULD_YIELD		 0
+-#define configUSE_MUTEXES		 1
+-#define configQUEUE_REGISTRY_SIZE	 8
+-#define configCHECK_FOR_STACK_OVERFLOW	 2
+-#define configUSE_RECURSIVE_MUTEXES	 1
+-#define configUSE_MALLOC_FAILED_HOOK	 1
+-#define configUSE_APPLICATION_TASK_TAG	 0
+-#define configUSE_COUNTING_SEMAPHORES	 1
+-#define configGENERATE_RUN_TIME_STATS	 0
+-
+-// TODO: investigate (gw)
+-//#define configOVERRIDE_DEFAULT_TICK_CONFIGURATION    1
+-//#define configRECORD_STACK_HIGH_ADDRESS              1
+-//#define configUSE_POSIX_ERRNO                        1
+-
+-/* newlib reentrancy */
+-#define configUSE_NEWLIB_REENTRANT 1
+-/* Co-routine definitions. */
+-#define configUSE_CO_ROUTINES		0
+-#define configMAX_CO_ROUTINE_PRIORITIES (2)
+-
+-/* Software timer definitions. */
+-#define configUSE_TIMERS	     1
+-#define configTIMER_TASK_PRIORITY    (configMAX_PRIORITIES - 1)
+-#define configTIMER_QUEUE_LENGTH     4
+-#define configTIMER_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE)
+-
+-/* Task priorities.  Allow these to be overridden. */
+-#ifndef uartPRIMARY_PRIORITY
+-#define uartPRIMARY_PRIORITY (configMAX_PRIORITIES - 3)
+-#endif
+-
+-/* Set the following definitions to 1 to include the API function, or zero
+-to exclude the API function. */
+-#define INCLUDE_vTaskPrioritySet	 1
+-#define INCLUDE_uxTaskPriorityGet	 1
+-#define INCLUDE_vTaskDelete		 1
+-#define INCLUDE_vTaskCleanUpResources	 1
+-#define INCLUDE_vTaskSuspend		 1
+-#define INCLUDE_vTaskDelayUntil		 1
+-#define INCLUDE_vTaskDelay		 1
+-#define INCLUDE_eTaskGetState		 1
+-#define INCLUDE_xTimerPendFunctionCall	 1
+-#define INCLUDE_xTaskAbortDelay		 1
+-#define INCLUDE_xTaskGetHandle		 1
+-#define INCLUDE_xSemaphoreGetMutexHolder 1
+-
+-/* Normal assert() semantics without relying on the provision of an assert.h
+-header file. */
+-#ifdef __PULP_USE_LIBC
+-#define configASSERT(x) assert(x)
+-#else
+-#define configASSERT(x)                   \
+-	do {                                                                   \
+-		if ((x) == 0) {                                                \
+-			taskDISABLE_INTERRUPTS();                              \
+-			for (;;)                                               \
+-				;                                              \
+-		}                                                              \
+-	} while (0)
+-#endif
+-
+-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+-#define configKERNEL_INTERRUPT_PRIORITY		7
+-
+-#endif /* FREERTOS_CONFIG_H */
+diff --git a/cli_test/Makefile b/cli_test/Makefile
+index ad11b10..c4a4477 100755
+--- a/cli_test/Makefile
++++ b/cli_test/Makefile
+@@ -54,7 +54,7 @@ CFLAGS = \
+ 	-std=gnu11 \
+ 	-Wall -Wextra -Wshadow -Wformat=2 -Wundef \
+ 	-Wno-unused-parameter -Wno-unused-variable \
+-	-Og -g3 \
++	-O0 -g3 \
+ 	-DFEATURE_CLUSTER=0 -D__PULP__=1 -DASYNC=0 -DTRACE_UART -DPI_LOG_LOCAL_LEVEL=5 -DDEBUG \
+         -fstack-usage -Wstack-usage=1024
+ 
+diff --git a/cli_test/app/FreeRTOSConfig.h b/cli_test/app/FreeRTOSConfig.h
+index 7c37599..007eb3e 100755
+--- a/cli_test/app/FreeRTOSConfig.h
++++ b/cli_test/app/FreeRTOSConfig.h
+@@ -61,11 +61,11 @@
+ #define configUSE_IDLE_HOOK				 1
+ #define configUSE_TICK_HOOK				 1
+ #define configCPU_CLOCK_HZ				 DEFAULT_SYSTEM_CLOCK
+-#define configTICK_RATE_HZ				 ( ( TickType_t ) 1000 )
++#define configTICK_RATE_HZ				 ( ( TickType_t ) 100 )
+ #define configMAX_PRIORITIES			 ( 5 )
+ #define configMINIMAL_STACK_SIZE		 ( ( unsigned short ) 200 ) /* Can be as low as 60 but some of the demo tasks that use this constant require it to be higher. */
+ #define configAPPLICATION_ALLOCATED_HEAP 1 /* we want to put the heap into special section */
+-#define configTOTAL_HEAP_SIZE			 ( ( size_t ) ( 16 * 1024 ) )
++#define configTOTAL_HEAP_SIZE			 ( ( size_t ) ( 64 * 1024 ) )
+ #define configMAX_TASK_NAME_LEN			 ( 16 )
+ #define configUSE_TRACE_FACILITY		 1 /* TODO: 0 */
+ #define configUSE_16_BIT_TICKS			 0
+diff --git a/cli_test/app/Makefile b/cli_test/app/Makefile
+new file mode 100644
+index 0000000..a80f4e6
+--- /dev/null
++++ b/cli_test/app/Makefile
+@@ -0,0 +1,96 @@
++# Copyright (C) 2020 ETH Zurich
++#
++# Permission is hereby granted, free of charge, to any person obtaining a copy
++# of this software and associated documentation files (the "Software"), to deal
++# in the Software without restriction, including without limitation the rights
++# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++# copies of the Software, and to permit persons to whom the Software is
++# furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in all
++# copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++# SOFTWARE.
++#
++# SPDX-License-Identifier: MIT
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++
++# Description: Makefile to build the blinky and other demo applications. Note
++# that it supports the usual GNU Make implicit variables e.g. CC, CFLAGS,
++# CPPFLAGS etc. Consult the GNU Make manual for move information about these.
++
++# Notes:
++# Useful targets
++# run make help for an updated overview
++
++# Important Variables
++# PROG       Needs to be set to your executables name
++# USER_SRCS  Add your source files here (use +=)
++# CPPFLAGS   Add your include search paths and macro definitions (use +=)
++
++# Adding common compile flags when using default_flags.mk.
++# Compile options (passed to make) e.g. make NDEBUG=yes
++# RELEASE   Make release build (default no)
++# LIBC      Link against libc (default yes)
++# LTO       Enable link time optimization (default no)
++# SANITIZE  Enable gcc sanitizer for debugging memory access problems (default no)
++# STACKDBG  Enable stack debugging information and warnings.
++#           By default 1 KiB but can be changed with MAXSTACKSIZE=your_value
++
++
++# indicate this repository's root folder
++# set some project specific path variables
++ifndef FREERTOS_PROJ_ROOT
++$(error "FREERTOS_PROJ_ROOT is unset. Run source env/platform-you-want.sh \
++	from the freertos project's root folder.")
++endif
++
++
++# good defaults for many environment variables
++include $(FREERTOS_PROJ_ROOT)/default_flags.mk
++
++# rtos and pulp sources, minimal
++include $(FREERTOS_PROJ_ROOT)/metal_srcs.mk
++
++# application name
++PROG = cli_test
++
++# application/user specific code
++
++USER_SRCS += barrMemTest.c
++USER_SRCS += cam_tests.c
++USER_SRCS += camera_task.c
++USER_SRCS += camera.c
++USER_SRCS += cli_adv_timer_unit_tests.c
++USER_SRCS += cli_efpga_tests.c
++USER_SRCS += cli_efpgaio_tests.c
++USER_SRCS += cli_fcb_tests.c
++USER_SRCS += cli_gpio_tests.c
++USER_SRCS += cli_i2c_tests.c
++USER_SRCS += cli_i2cs_tests.c
++USER_SRCS += cli_interrupt_tests.c
++USER_SRCS += cli.c
++USER_SRCS += gpio_map.c
++USER_SRCS += i2c_task.c
++USER_SRCS += sdio_tests.c
++USER_SRCS += programFPGA.c
++USER_SRCS += qspi_tests.c
++
++USER_SRCS += main.c
++
++CV_CPPFLAGS += -I"$(FREERTOS_PROJ_ROOT)"
++
++# FreeRTOS.h
++CPPFLAGS += $(addprefix -I$(VPATH)/, ".")
++
++CPPFLAGS += -DportasmHANDLE_INTERRUPT=vSystemIrqHandler
++
++# compile, simulation and analysis targets
++include $(FREERTOS_PROJ_ROOT)/default_targets.mk
+diff --git a/cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.c b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/N25Q.c
+similarity index 100%
+rename from cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.c
+rename to cli_test/app/N25Q_16Mb-1Gb_Device_Driver/N25Q.c
+diff --git a/cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.h b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/N25Q.h
+similarity index 100%
+rename from cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.h
+rename to cli_test/app/N25Q_16Mb-1Gb_Device_Driver/N25Q.h
+diff --git a/cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.txt b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/N25Q.txt
+similarity index 100%
+rename from cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.txt
+rename to cli_test/app/N25Q_16Mb-1Gb_Device_Driver/N25Q.txt
+diff --git a/cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/Serialize.c b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/Serialize.c
+similarity index 100%
+rename from cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/Serialize.c
+rename to cli_test/app/N25Q_16Mb-1Gb_Device_Driver/Serialize.c
+diff --git a/cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/Serialize.h b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/Serialize.h
+similarity index 100%
+rename from cli_test/app/N25Q_16Mb-1Gb_Device_Driver V2.1/Serialize.h
+rename to cli_test/app/N25Q_16Mb-1Gb_Device_Driver/Serialize.h
+diff --git a/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/makefile.mk b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/makefile.mk
+new file mode 100644
+index 0000000..cc174f0
+--- /dev/null
++++ b/cli_test/app/N25Q_16Mb-1Gb_Device_Driver/makefile.mk
+@@ -0,0 +1,22 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++SRCS += $(dir)/N25Q.c
++SRCS += $(dir)/Serialize.c
++
++
++CV_CPPFLAGS += -I$(dir)
+diff --git a/cli_test/app/camera.c b/cli_test/app/camera.c
+index b92e618..036f34d 100755
+--- a/cli_test/app/camera.c
++++ b/cli_test/app/camera.c
+@@ -6,6 +6,7 @@
+ #include <drivers/include/camera.h>
+ #include <app/include/i2c_task.h>
+ 
++extern reg_cfg_t* himaxRegInit;
+ 
+ unsigned char camera_isAwaked = 0;
+ 
+diff --git a/cli_test/app/camera_task.c b/cli_test/app/camera_task.c
+index 0628382..fcbb31a 100755
+--- a/cli_test/app/camera_task.c
++++ b/cli_test/app/camera_task.c
+@@ -9,6 +9,7 @@
+ #include "hal/include/hal_apb_soc_ctrl_regs.h"
+ static TaskHandle_t xTasktoNotify;
+ 
++extern reg_cfg_t* himaxRegInit;
+ 
+ //uint8_t picture[244*324];
+ uint8_t picture[1*1];
+diff --git a/cli_test/app/cli_adv_timer_unit_tests.c b/cli_test/app/cli_adv_timer_unit_tests.c
+index 37b4627..85c5857 100644
+--- a/cli_test/app/cli_adv_timer_unit_tests.c
++++ b/cli_test/app/cli_adv_timer_unit_tests.c
+@@ -185,7 +185,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_0_cmd_register = 1 << REG_TIMER_0_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -274,7 +274,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_0_cmd_register = 1 << REG_TIMER_0_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -363,7 +363,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_0_cmd_register = 1 << REG_TIMER_0_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -452,7 +452,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_0_cmd_register = 1 << REG_TIMER_0_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -554,7 +554,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_1_cmd_register = 1 << REG_TIMER_1_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -643,7 +643,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_1_cmd_register = 1 << REG_TIMER_1_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -732,7 +732,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_1_cmd_register = 1 << REG_TIMER_1_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num", aAdvTimerNum);
+ 						CLI_printf("Chn num", aAdvTimerChannelNum);
+ 						CLI_printf("Event num", lEventNum);
+@@ -821,7 +821,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_1_cmd_register = 1 << REG_TIMER_1_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -923,7 +923,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_2_cmd_register = 1 << REG_TIMER_2_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num", aAdvTimerNum);
+ 						CLI_printf("Chn num", aAdvTimerChannelNum);
+ 						CLI_printf("Event num", lEventNum);
+@@ -1012,7 +1012,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_2_cmd_register = 1 << REG_TIMER_2_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -1101,7 +1101,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_2_cmd_register = 1 << REG_TIMER_2_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num", aAdvTimerNum);
+ 						CLI_printf("Chn num", aAdvTimerChannelNum);
+ 						CLI_printf("Event num", lEventNum);
+@@ -1190,7 +1190,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_2_cmd_register = 1 << REG_TIMER_2_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -1292,7 +1292,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_3_cmd_register = 1 << REG_TIMER_3_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num", aAdvTimerNum);
+ 						CLI_printf("Chn num", aAdvTimerChannelNum);
+ 						CLI_printf("Event num", lEventNum);
+@@ -1381,7 +1381,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_3_cmd_register = 1 << REG_TIMER_3_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+@@ -1470,7 +1470,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_3_cmd_register = 1 << REG_TIMER_3_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num", aAdvTimerNum);
+ 						CLI_printf("Chn num", aAdvTimerChannelNum);
+ 						CLI_printf("Event num", lEventNum);
+@@ -1559,7 +1559,7 @@ static uint32_t testAdvTimerForFourEvents(uint32_t aAdvTimerNum, uint32_t aAdvTi
+ 
+ 						adv_timer->timer_3_cmd_register = 1 << REG_TIMER_3_CMD_REGISTER_START_COMMAND_LSB; //start
+ 						lCurrentCount = handler_count[21 + lEventNum];
+-						vTaskDelay(2);
++						vTaskDelay(4);
+ 						CLI_printf("Timer num 0x%02x\n", aAdvTimerNum);
+ 						CLI_printf("Chn num 0x%02x\n", aAdvTimerChannelNum);
+ 						CLI_printf("Event num 0x%02x\n", lEventNum);
+diff --git a/cli_test/app/cli_gpio_tests.c b/cli_test/app/cli_gpio_tests.c
+index c946a0d..b4410cb 100644
+--- a/cli_test/app/cli_gpio_tests.c
++++ b/cli_test/app/cli_gpio_tests.c
+@@ -516,7 +516,7 @@ static unsigned int gpio_set_clr_toggle_mode_test(gpio_struct_typedef *gpio) {
+ 	dbg_str(message);
+ #endif
+ 
+-	if( (lgpio.mux_sel == gpio->mux_sel) &&
++	if(//(lgpio.mux_sel == gpio->mux_sel) &&
+ 		(lgpio.out_val == gpio->result) &&
+ 		(lgpio.in_val == gpio->result)		//To confirm the value on the pin, read the input value
+ 	) {
+diff --git a/cli_test/app/cli_i2c_tests.c b/cli_test/app/cli_i2c_tests.c
+index 7d8b6c7..d6c6ad6 100644
+--- a/cli_test/app/cli_i2c_tests.c
++++ b/cli_test/app/cli_i2c_tests.c
+@@ -238,7 +238,7 @@ static void i2c_temp (const struct cli_cmd_entry *pEntry)
+ 
+ 	int temp;
+ 
+-	udma_i2cm_read(1, 0x96, 0x00, 2, i2c_buffer, false);
++	udma_i2cm_read(1, 0xDE, 0x00, 2, i2c_buffer, false);
+ 	temp = (i2c_buffer[0] << 8) + i2c_buffer[1];
+ 	temp = ((temp *625) / 44000) + 32;
+ 	CLI_printf(" Board temp = %d F\r\n", temp);
+@@ -251,7 +251,7 @@ static void i2c_read_dev_id(const struct cli_cmd_entry *pEntry)
+ 	int temp;
+ 	message  = pvPortMalloc(80);
+ 	configASSERT (message);
+-	udma_i2cm_read(1, 0x96, 0x0B, 1, i2c_buffer, false);
++	udma_i2cm_read(1, 0xDE, 0x0B, 1, i2c_buffer, false);
+ 
+ 	sprintf(message," i2c_dev_id:= 0x%x \r\n", i2c_buffer[0]);
+ 	dbg_str(message);
+@@ -269,6 +269,7 @@ static void i2cm0_test_all(const struct cli_cmd_entry *pEntry)
+ 
+ 	bool		fPassed = false;
+ 
++#if 0
+ 	hal_setpinmux(23, 2);
+ 	hal_setpinmux(24, 2);
+ 	i2c_buffer[0] = 0x3D;
+@@ -296,7 +297,7 @@ static void i2cm0_test_all(const struct cli_cmd_entry *pEntry)
+ 	{
+ 		CLI_printf("i2cm0 readbyte slv addr 0x%02x reg 0x%02x <<FAILED>>\n", 0xC4, 0x10);
+ 	}
+-
++#endif
+ 	hal_setpinmux(23, 0);
+ 	hal_setpinmux(24, 0);
+ 
+@@ -371,7 +372,7 @@ static void i2cm0_test_all(const struct cli_cmd_entry *pEntry)
+ 
+ static void i2cm1_test_all(const struct cli_cmd_entry *pEntry)
+ {
+-
++#if 0
+ 	hal_setpinmux(46, 2);
+ 	hal_setpinmux(47, 2);
+ 
+@@ -384,6 +385,7 @@ static void i2cm1_test_all(const struct cli_cmd_entry *pEntry)
+ 	{
+ 		CLI_printf("i2cm1 readbyte slv addr 0x%02x reg 0x%02x <<FAILED>>\n", 0x96, 0x0B);
+ 	}
++#endif
+ 	hal_setpinmux(46, 0);
+ 	hal_setpinmux(47, 0);
+ 	i2c_temp(NULL);
+diff --git a/cli_test/app/main.c b/cli_test/app/main.c
+index a37f79b..dc81c67 100755
+--- a/cli_test/app/main.c
++++ b/cli_test/app/main.c
+@@ -187,7 +187,7 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
+ 	for( ;; );
+ }
+ /*-----------------------------------------------------------*/
+-
++#define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY 1
+ void vApplicationTickHook( void )
+ {
+ 	/* The tests in the full demo expect some interaction with interrupts. */
+diff --git a/cli_test/app/qspi_tests.c b/cli_test/app/qspi_tests.c
+index 68b8274..5fa5e13 100644
+--- a/cli_test/app/qspi_tests.c
++++ b/cli_test/app/qspi_tests.c
+@@ -20,7 +20,7 @@
+ #include "hal/include/hal_fc_event.h"
+ #include "drivers/include/udma_qspi_driver.h"
+ #include "hal/include/hal_pinmux.h"
+-#include "N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.h"
++#include "N25Q_16Mb-1Gb_Device_Driver/N25Q.h"
+ 
+ typedef union {
+ 	uint32_t w;
+@@ -621,7 +621,7 @@ static void flash_readid(const struct cli_cmd_entry *pEntry)
+ 
+ 		CLI_printf("FLASH read ID results = 0x%08x %02x %02x %02x %02x\n",
+ 				result.w, result.b[0],result.b[1],result.b[2],result.b[3]);
+-		if( result.w == 0x1019ba20 )
++		if( result.w == 0x0019ba20 )
+ 			CLI_printf("<<PASSED>>\n");
+ 		else
+ 			CLI_printf("<<FAILED>>\n");
+diff --git a/cli_test/default_flags.mk b/cli_test/default_flags.mk
+new file mode 100644
+index 0000000..6698dc4
+--- /dev/null
++++ b/cli_test/default_flags.mk
+@@ -0,0 +1,167 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# Compile options (passed to make) e.g. make NDEBUG=yes
++# NDEBUG    Make release build
++# LIBC      Link against libc
++# LTO       Enable link time optimization
++# SANITIZE  Enable gcc sanitizer for debugging memory access problems
++# STACKDBG  Enable stack debugging information and warnings.
++#           By default 1 KiB but can be changed with MAXSTACKSIZE=your_value
++
++RISCV		?= $(HOME)/.riscv
++RISCV_PREFIX	?= $(RISCV)/bin/riscv32-unknown-elf-
++CC		= $(RISCV_PREFIX)gcc
++OBJCOPY		= $(RISCV_PREFIX)objcopy
++OBJDUMP		= $(RISCV_PREFIX)objdump
++SIZE		= $(RISCV_PREFIX)size
++
++# set some project specific path variables
++ifndef FREERTOS_PROJ_ROOT
++$(error "FREERTOS_PROJ_ROOT is unset. Point it to this project's root directory.")
++endif
++
++SCRIPTS_ROOT = $(FREERTOS_PROJ_ROOT)/scripts
++SUPPORT_ROOT = $(FREERTOS_PROJ_ROOT)/support
++
++# For out tree builds. We set a default for regular builds to make handling
++# simpler
++VPATH = .
++
++# test if gcc is newer than version 8
++GCC_GTEQ_8 = $(shell expr `$(CC) -dumpversion | cut -f1 -d.` \>= 8)
++
++# CFLAGS defaults explained
++#
++# -std=gnu11
++#
++# This is a c11 project with gnu extension
++#
++# -mno-save-restore
++#
++# Do not use function calls for the prologue/epilogue of functions. This is
++# debatable.
++#
++# -msmall-data-limit
++#
++# Limit data being put into the small data sections. Needs more exploration.
++#
++# -ffunction-sections -fdata-sections:
++#
++# Each function and data element will get its own section. This allows the
++# linker to mark certain sections as unused which in turn will be deleted by
++# feeding --gc-sections to the linker. Shrinks binary.
++#
++# -Wall -Wextra -Wshadow -Wformat=2 -Wundef -Wconversion
++#
++# Good set of warnings preventing some common bugs (integer promotion issues,
++# shadowed variables, undefined macros etc.)
++#
++# -Og and -Os
++#
++# Debug builds are -Og. Gcc promises to make debugabble builds. Release builds
++# are -Os which is basically -O2 withouth optimizations that causes code bloat.
++
++# FIXME: NOTE to -march
++# Compiler toolchain looks like this currently
++# ~/.riscv/bin/riscv32-unknown-elf-gcc --print-multi-lib
++# .;
++# rv32i/ilp32;@march=rv32i@mabi=ilp32
++# rv32im/ilp32;@march=rv32im@mabi=ilp32
++# rv32iac/ilp32;@march=rv32iac@mabi=ilp32
++# rv32imac/ilp32;@march=rv32imac@mabi=ilp32
++# rv32imafc/ilp32f;@march=rv32imafc@mabi=ilp32f
++# rv64imac/lp64;@march=rv64imac@mabi=lp64
++# rv64imafdc/lp64d;@march=rv64imafdc@mabi=lp64d
++
++# This unfortunately means that when we use -march=rv32imc then the libc code
++# that will be linked is from -march=rv32im since that is the best fitting
++# subset. This results in non compressed libc code. A quick fix is using
++# -march=rv32imac but thats just weird since we don't really support the
++# A-Extension in this PULP version.
++
++# User controllable standard makeflags
++CFLAGS = -O0 -g3
++CPPFLAGS =
++LDFLAGS =
++LDLIBS =
++ASFLAGS = -O0 -g3
++
++# Builtin mandatory flags. Need to be simply expanded variables for appends in
++# sub-makefiles to work correctly
++CV_CFLAGS := \
++	-msmall-data-limit=8 -mno-save-restore \
++	-fsigned-char -ffunction-sections -fdata-sections \
++	-std=gnu11 \
++	-Wall -Wextra -Wshadow -Wformat=2 -Wundef -Wconversion -Wno-unused-parameter
++
++CV_ASFLAGS := \
++	-msmall-data-limit=8 -mno-save-restore \
++	-fsigned-char -ffunction-sections -fdata-sections \
++	-x assembler-with-cpp
++
++CV_CPPFLAGS :=
++
++# note: linkerscript is included in target directory makefile.mk
++CV_LDFLAGS := -nostartfiles -Wl,--gc-sections -Wl,-Map,memory.map # -Wl,--print-gc-sections
++
++# check if we want a release build
++ifeq ($(RELEASE),yes)
++CV_CPPFLAGS += -DNDEBUG
++endif
++
++# stack debugging information
++ifeq ($(STACKDBG),yes)
++CV_CFLAGS += -fstack-usage
++ifeq ($(MAXSTACKSIZE),)
++CV_CFLAGS += -Wstack-usage=1024
++else
++CV_CFLAGS += -Wstack-usage=$(MAXSTACKSIZE)
++endif
++endif
++
++# check if we want to debug with memory sanitiszers
++ifeq ($(SANITIZE),yes)
++CV_CFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=leak
++endif
++
++# link time optimization
++# note that the gnu manpage recommends passing the optimization flags used at
++# compile time also to the linker when using LTO (weird!) which is why we have
++# CFLAGS in the linker target
++ifeq ($(LTO),yes)
++CV_CFLAGS += -flto
++endif
++
++# use dpi during simulation
++ifeq ($(DPI),yes)
++DPI_LIBS += $(SUPPORT_ROOT)/install/lib/libpulpdpi.so
++endif
++
++# script paths
++PLPSTIM   = $(SCRIPTS_ROOT)/pulpstim
++PULPTRACE = $(SCRIPTS_ROOT)/pulptrace
++MEMCONV   = $(SCRIPTS_ROOT)/mem.tcl
++
++# simulation names and paths
++VSIM   = vsim
++SIMDIR = sim
++GVSIMDIR = gvsim
++PULP_RISCV_GCC_TOOLCHAIN=$(RISCV) # for gvsoc
++
++# force SRCS to be a "simply expanded variable"
++SRCS :=
+diff --git a/cli_test/default_targets.mk b/cli_test/default_targets.mk
+new file mode 100644
+index 0000000..8993fa9
+--- /dev/null
++++ b/cli_test/default_targets.mk
+@@ -0,0 +1,280 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# This makefile fragment defines default compile rules. It expect the default
++# GNU Make C compiler flags set correctly (CFLAGS, CPPFLAGS, LDFLAGS), sensible
++# values for $(RTOS_SRCS) $(PULP_SRCS) $(USER_SRCS), a well defined $(SIMDIR)
++# and a $(PROG) name
++
++ifndef SIMDIR
++$(error "SIMDIR is empty. Simulation and analysis targets will not work")
++endif
++
++ifndef GVSIMDIR
++$(error "GVSIMDIR is empty. Simulation and analysis targets will not work")
++endif
++
++ifeq ($(strip $(PROG)),)
++$(error "PROG is invalid or empty. Won't be able to compile.")
++endif
++
++# make sure we compile by default
++.DEFAULT_GOAL := all
++
++# derived variables for compiling
++SRCS += $(RTOS_SRCS) $(USER_SRCS)
++OBJS = $(addsuffix .o, $(basename $(SRCS))) # .S and .c replaced
++DEPS = $(addsuffix .d, $(basename $(SRCS)))
++
++# other possibly generated files
++SU  = $(addsuffix .su, $(basename $(SRCS)))
++
++
++## Compile and link executable. Obeys standard GNU variables used by implicit rules.
++all: $(PROG) $(PROG).stim misc-info
++
++%.o: %.S
++	$(CC) $(CV_ASFLAGS) $(ASFLAGS) $(CV_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
++
++%.o: %.c
++	$(CC) $(CV_CFLAGS) $(CFLAGS) $(CV_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
++
++$(PROG): $(OBJS)
++	$(CC) $(CV_CFLAGS) $(CFLAGS) $(CV_LDFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
++
++
++# objdump, listing and size of binary
++misc-info: $(PROG).hex $(PROG).lst $(PROG).siz
++
++$(PROG).stim: $(PROG)
++	$(PLPSTIM) -o $@ $<
++
++$(PROG).hex: $(PROG)
++	$(OBJCOPY) -O ihex $(PROG)  $@
++
++$(PROG).veri: $(PROG)
++	$(OBJCOPY) -O verilog $(PROG) $@
++
++$(PROG).lst: $(PROG)
++	$(OBJDUMP) --source --all-headers --demangle --line-numbers --wide --prefix-addresses \
++		$(PROG) > $@
++
++$(PROG).siz: $(PROG)
++	$(SIZE) --format=berkeley $<
++
++# simulator specific targets
++# make sure we have sim directory
++$(shell mkdir -p $(SIMDIR))
++# make sure we have gvsim directory
++$(shell mkdir -p $(GVSIMDIR))
++
++# creating symlink farm because PULP/PULPissimo relies on hardcoded paths
++$(SIMDIR)/modelsim.ini:
++	ln -s $(VSIM_PATH)/modelsim.ini $@
++
++$(SIMDIR)/boot:
++	ln -s $(VSIM_PATH)/boot $@
++
++$(SIMDIR)/tcl_files:
++	ln -s $(VSIM_PATH)/tcl_files $@
++
++$(SIMDIR)/waves:
++	ln -s $(VSIM_PATH)/waves $@
++
++$(SIMDIR)/vectors/stim.txt: $(PROG).stim
++	mkdir -p -- "$$(dirname $@)"
++	ln -rs $^ $@
++
++$(SIMDIR)/stdout:
++	mkdir -p -- $@
++
++$(SIMDIR)/fs:
++	mkdir -p -- $@
++
++$(SIMDIR)/preload:
++	mkdir -p -- $@
++
++$(SIMDIR)/preload/private_bank_0 $(SIMDIR)/preload/private_bank_1 \
++$(SIMDIR)/preload/elf.veri &: $(PROG).veri
++	$(MEMCONV) $(PROG).veri $(SIMDIR)/preload
++
++# default vsim flags for simulation
++VSIM_RUN_FLAGS = +ENTRY_POINT=0x1c000880 -gLOAD_L2=JTAG \
++		-dpicpppath $(CXX) -permit_unmatched_virtual_intf \
++		-gBAUDRATE=115200
++
++# signal to simulator to preload the binary
++ifdef preload
++  VSIM_RUN_FLAGS += +preload=preload
++  # add to pre-requisites for run target
++  RUN_MORE = $(SIMDIR)/preload/elf.veri
++endif
++
++# vsim argument to enable dpi
++ifeq ($(DPI),yes)
++  VSIM_DPI = $(addprefix -sv_lib ,$(basename $(DPI_LIBS)))
++  ifeq ($(strip $(DPI_CONFIG)),)
++  $(warning "DPI_CONFIG is unset, but requested DPI sim. Using default rtl_config.json")
++  DPI_CONFIG = "rtl_config.json"
++  endif
++else
++  DPI_CONFIG = "NONE"
++endif
++
++VSIM_RUN_FLAGS += -gCONFIG_FILE=$(DPI_CONFIG)
++
++.PHONY:
++## Run RTL simulation. Append gui=1 or interactive=1 for vsim gui or vsim shell respectively
++run-sim: run
++
++.PHONY: run
++run: $(SIMDIR)/modelsim.ini $(SIMDIR)/boot $(SIMDIR)/tcl_files \
++	$(SIMDIR)/waves $(SIMDIR)/vectors/stim.txt \
++	$(SIMDIR)/stdout $(SIMDIR)/fs \
++	$(DPI_LIBS) $(RUN_MORE)
++ifndef VSIM_PATH
++	$(error "VSIM_PATH is not set. Make sure your ran `source setup/vsim.sh` \
++	in your PULP/PULPissimo repository")
++endif
++	cp $(PROG) $(SIMDIR)
++	cp $(PROG).lst $(SIMDIR)
++	cp memory.map $(SIMDIR)
++	if [[ -f $(PROG).veri ]]; then cp $(PROG).veri $(SIMDIR); fi;
++ifdef gui
++	cd $(SIMDIR) && \
++	export LD_LIBRARY_PATH="$(SUPPORT_LIB_DIR)" && \
++	export VSIM_RUNNER_FLAGS="$(VSIM_RUN_FLAGS) $(VSIM_DPI) $(VSIM_ARGS)" && \
++	export VOPT_ACC_ENA="YES" && \
++	$(VSIM) -64 -do 'source $(VSIM_PATH)/tcl_files/config/run_and_exit.tcl' \
++		-do 'source $(VSIM_PATH)/tcl_files/run.tcl; ' $(VSIM_ARGS)
++else
++ifdef interactive
++	cd $(SIMDIR) && \
++	export LD_LIBRARY_PATH="$(SUPPORT_LIB_DIR)" && \
++	export VSIM_RUNNER_FLAGS="$(VSIM_RUN_FLAGS) $(VSIM_DPI) $(VSIM_ARGS)" && \
++	$(VSIM) -64 -c -do 'source $(VSIM_PATH)/tcl_files/config/run_and_exit.tcl' \
++		-do 'source $(VSIM_PATH)/tcl_files/run.tcl;' $(VSIM_ARGS)
++else
++	cd $(SIMDIR) && \
++	export LD_LIBRARY_PATH="$(SUPPORT_LIB_DIR)" && \
++	export VSIM_RUNNER_FLAGS="$(VSIM_RUN_FLAGS) $(VSIM_DPI) $(VSIM_ARGS)" && \
++	$(VSIM) -64 -c -do 'source $(VSIM_PATH)/tcl_files/config/run_and_exit.tcl' \
++		-do 'source $(VSIM_PATH)/tcl_files/run.tcl; run_and_exit;' $(VSIM_ARGS)
++endif
++endif
++
++GVSOC=$(SUPPORT_ROOT)/egvsoc.sh
++.PHONY: run-gvsoc
++## Run simulation using gvsoc
++run-gvsoc: $(GVSIMDIR) gvsoc
++	cp $(PROG) $(GVSIMDIR)
++	cp $(PROG).lst $(GVSIMDIR)
++	cp memory.map $(GVSIMDIR)
++	PULP_RISCV_GCC_TOOLCHAIN=$(PULP_RISCV_GCC_TOOLCHAIN) \
++	$(GVSOC) --config-file=pulp@config_file=chips/pulp/pulp.json --platform=gvsoc \
++		--dir=$(CURDIR)/$(GVSIMDIR) --binary=$(PROG) prepare run $(GVSIM_ARGS)
++
++# analysis scripts
++$(SIMDIR)/trace_%_postproc.log: $(SIMDIR)/trace_core_%.log
++	$(PULPTRACE) --time --stats --cycles $^ $(PROG) -o $@
++
++## Symbolize simulation instruction trace log using the the original executable
++trace-symbolize: $(SIMDIR)/trace_1f_0_postproc.log
++
++$(SIMDIR)/trace_%_simplify.log: $(SIMDIR)/trace_%_postproc.log
++	sed -e '/: <_start>/a [...]' -e '1,/: <_start>/d' \
++		-e '/: <malloc+0x[a-f0-9]\+>/d' -e '/: <malloc>/a [...]' \
++		-e '/: <_malloc_r+0x[a-f0-9]\+>/d' -e '/: <_malloc_r>/a [...]' \
++		-e '/: <memset+0x[a-f0-9]\+>/d' -e '/: <memset>/a [...]' \
++		-e '/: <__malloc_lock+0x[a-f0-9]\+>/d' -e '/: <__malloc_lock>/a [...]' \
++		-e '/: <_sbrk+0x[a-f0-9]\+>/d' -e '/: <_sbrk>/a [...]' \
++		-e '/: <_sbrk_r+0x[a-f0-9]\+>/d' -e '/: <_sbrk_r>/a [...]' \
++		-e '/: <__sfp+0x[a-f0-9]\+>/d' -e '/: <__sfp>/a [...]' \
++		-e '/: <__sinit+0x[a-f0-9]\+>/d' -e '/: <__sinit>/a [...]' \
++		-e '/: <std+0x[a-f0-9]\+>/d' -e '/: <std>/a [...]' \
++		-e '/: <puts+0x[a-f0-9]\+>/d' -e '/: <puts>/a [...]' \
++		-e '/: <_puts_r+0x[a-f0-9]\+>/d' -e '/: <_puts_r>/a [...]' \
++		-e '/: <_write+0x[a-f0-9]\+>/d' -e '/: <_write>/a [...]' \
++		-e '/: <_write_r+0x[a-f0-9]\+>/d' -e '/: <_write_r>/a [...]' \
++		-e '/: <__swrite+0x[a-f0-9]\+>/d' -e '/: <__swrite>/a [...]' \
++		-e '/: <__sflush_r+0x[a-f0-9]\+>/d' -e '/: <__sflush_r>/a [...]' \
++		-e '/: <_fflush_r+0x[a-f0-9]\+>/d' -e '/: <_fflush_r>/a [...]' \
++		-e '/: <__swbuf_r+0x[a-f0-9]\+>/d' -e '/: <__swbuf_r>/a [...]' \
++		-e '/: <iprintf+0x[a-f0-9]\+>/d' -e '/: <iprintf>/a [...]' \
++		-e '/: <_vfiprintf_r+0x[a-f0-9]\+>/d' -e '/: <_vfiprintf_r>/a [...]' \
++		-e '/: <_printf_i+0x[a-f0-9]\+>/d' -e '/: <_printf_i>/a [...]' \
++		-e '/: <_printf_common+0x[a-f0-9]\+>/d' -e '/: <_priUSER_SRCS_r>/a [...]' \
++		-e '/: <memchr+0x[a-f0-9]\+>/d' -e '/: <memchr>/a [...]' \
++		-e '/: <__smakebuf_r+0x[a-f0-9]\+>/d' -e '/: <__smakebuf_r>/a [...]' \
++		-e '/: <__swsetup_r+0x[a-f0-9]\+>/d' -e '/: <__swsetup_r>/a [...]' \
++		$^ > $@
++## Simplify simulation instruction trace log. This collapses some function calls.
++trace-simplify: $(SIMDIR)/trace_1f_0_simplify.log
++
++.PHONY: backup
++## Backup current simulation folder
++backup:
++	@STAMP=sim-$$(git rev-parse --short HEAD)-$$(date +"%Y-%m-%d-%H-%M-%S"); \
++	cp -r $(SIMDIR) $$STAMP; \
++	cp $(PROG) $(PROG).lst $$STAMP; \
++	echo "generated backup $$STAMP";
++
++.PHONY: clean
++## Clean object files
++clean:
++	rm -f $(OBJS) $(PROG) $(DEPS) $(SU) \
++		$(PROG).hex $(PROG).lst $(PROG).siz memory.map $(PROG).veri \
++		$(PROG).stim $(SIMDIR)/vectors/stim.txt
++
++.PHONY: distclean
++## Clean object files and all support dependencies
++distclean: clean
++	rm -rf $(SUPPORT_ROOT)/install/*
++	rm -r $(SIMDIR) $(GVSIMDIR)
++.PHONY: show-config
++## Show current configuration
++show-config:
++	@printf "Project settings:\n"
++	@printf "FREERTOS_PROJ_ROOT=$(FREERTOS_PROJ_ROOT)\n"
++	@printf "FREERTOS_CONFIG_FAMILY=$(FREERTOS_CONFIG)\n"
++	@printf "\n"
++	@printf "Compiler settings:\n"
++	@printf "CC=$(CC)\n"
++	@printf "CFLAGS=\"$(CFLAGS)\"\n"
++	@printf "CPPFLAGS=\"$(CPPFLAGS)\"\n"
++	@printf "\n"
++	@printf "Assembler settings:\n"
++	@printf "AS=$(CC)\n"
++	@printf "ASFLAGS=\"$(ASFLAGS)\"\n"
++	@printf "\n"
++	@printf "Linker settings:\n"
++	@printf "LDFLAGS=\"$(LDFLAGS)\"\n"
++	@printf "LDLIBS=\"$(LDLIBS)\"\n"
++
++.PHONY: help
++## Generate help overview
++help: Makefile
++	@printf "Available targets\n\n"
++	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
++		helpMessage = match(lastLine, /^## (.*)/); \
++		if (helpMessage) { \
++			helpCommand = substr($$1, 0, index($$1, ":")-1); \
++			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
++			printf "%-15s %s\n", helpCommand, helpMessage; \
++		} \
++	} \
++	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+diff --git a/cli_test/drivers/include/camera.h b/cli_test/drivers/include/camera.h
+index 0182fef..1fb1d4a 100755
+--- a/cli_test/drivers/include/camera.h
++++ b/cli_test/drivers/include/camera.h
+@@ -30,100 +30,4 @@ typedef struct {
+ }reg_cfg_t;
+ 
+ 
+-reg_cfg_t himaxRegInit[] = {
+-    {BLC_TGT, 0x08},            //  BLC target :8  at 8 bit mode
+-    {BLC2_TGT, 0x08},           //  BLI target :8  at 8 bit mode
+-    {0x3044, 0x0A},             //  Increase CDS time for settling
+-    {0x3045, 0x00},             //  Make symetric for cds_tg and rst_tg
+-    {0x3047, 0x0A},             //  Increase CDS time for settling
+-    {0x3050, 0xC0},             //  Make negative offset up to 4x
+-    {0x3051, 0x42},
+-    {0x3052, 0x50},
+-    {0x3053, 0x00},
+-    {0x3054, 0x03},             //  tuning sf sig clamping as lowest
+-    {0x3055, 0xF7},             //  tuning dsun
+-    {0x3056, 0xF8},             //  increase adc nonoverlap clk
+-    {0x3057, 0x29},             //  increase adc pwr for missing code
+-    {0x3058, 0x1F},             //  turn on dsun
+-    {0x3059, 0x1E},
+-    {0x3064, 0x00},
+-    {0x3065, 0x04},             //  pad pull 0
+-
+-    {BLC_CFG, 0x43},            //  BLC_on, IIR
+-
+-    {0x1001, 0x43},             //  BLC dithering en
+-    {0x1002, 0x43},             //  blc_darkpixel_thd
+-    {0x0350, 0x00},             //  Dgain Control
+-    {BLI_EN, 0x01},             //  BLI enable
+-    {0x1003, 0x00},             //  BLI Target [Def: 0x20]
+-
+-    {DPC_CTRL, 0x01},           //  DPC option 0: DPC off   1 : mono   3 : bayer1   5 : bayer2
+-    {0x1009, 0xA0},             //  cluster hot pixel th
+-    {0x100A, 0x60},             //  cluster cold pixel th
+-    {SINGLE_THR_HOT, 0x90},     //  single hot pixel th
+-    {SINGLE_THR_COLD, 0x40},    //  single cold pixel th
+-    {0x1012, 0x00},             //  Sync. shift disable
+-    {0x2000, 0x07},
+-    {0x2003, 0x00},
+-    {0x2004, 0x1C},
+-    {0x2007, 0x00},
+-    {0x2008, 0x58},
+-    {0x200B, 0x00},
+-    {0x200C, 0x7A},
+-    {0x200F, 0x00},
+-    {0x2010, 0xB8},
+-    {0x2013, 0x00},
+-    {0x2014, 0x58},
+-    {0x2017, 0x00},
+-    {0x2018, 0x9B},
+-
+-    {AE_CTRL,        0x01},      //Automatic Exposure Gain Control
+-    {AE_TARGET_MEAN, 0x3C},      //AE target mean [Def: 0x3C]
+-    {AE_MIN_MEAN,    0x0A},      //AE min target mean [Def: 0x0A]
+-
+-    {INTEGRATION_H,  0x00},      //Integration H [Def: 0x01]
+-    {INTEGRATION_L,  0x60},      //Integration L [Def: 0x08]
+-    {ANALOG_GAIN,    0x00},      //Analog Global Gain
+-    {DAMPING_FACTOR, 0x20},      //Damping Factor [Def: 0x20]
+-    {DIGITAL_GAIN_H, 0x01},      //Digital Gain High [Def: 0x01]
+-    {DIGITAL_GAIN_L, 0x00},      //Digital Gain Low [Def: 0x00]
+-
+-    {0x2103, 0x03},
+-
+-    {0x2104, 0x05},
+-    {0x2105, 0x01},
+-
+-    {0x2106, 0x54},
+-
+-    {0x2108, 0x03},
+-    {0x2109, 0x04},
+-
+-    {0x210B, 0xC0},
+-    {0x210E, 0x00}, //Flicker Control
+-    {0x210F, 0x00},
+-    {0x2110, 0x3C},
+-    {0x2111, 0x00},
+-    {0x2112, 0x32},
+-
+-    {0x2150, 0x30},
+-    {0x0340, 0x02},
+-    {0x0341, 0x16},
+-    {0x0342, 0x01},
+-    {0x0343, 0x78},
+-    {0x3010, 0x01},
+-    {0x0383, 0x01},
+-    {0x0387, 0x01},
+-    {0x0390, 0x00},
+-    {0x3011, 0x70},
+-    {0x3059, 0x02},
+-    {0x3060, 0x01},
+-//    {0x3060, 0x25}, //Clock gating and clock divisors
+-    {0x3068, 0x20}, //PCLK0 polarity
+-    {IMG_ORIENTATION, 0x01}, // change the orientation
+-    {0x0104, 0x01},
+-    {0x0100, 0x01},
+-	//{0x0601, 0x11}	//Test pattern walking ones
+-	//{0x0601, 0x01}	//Test pattern colour bar
+-};
+-
+ #endif
+diff --git a/cli_test/drivers/makefile.mk b/cli_test/drivers/makefile.mk
+new file mode 100644
+index 0000000..849c921
+--- /dev/null
++++ b/cli_test/drivers/makefile.mk
+@@ -0,0 +1,24 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++SRCS += $(dir)/source/udma_cam_driver.c
++SRCS += $(dir)/source/udma_i2cm_driver.c
++SRCS += $(dir)/source/udma_qspi_driver.c
++SRCS += $(dir)/source/udma_sdio_driver.c
++SRCS += $(dir)/source/udma_uart_driver.c
++
++#CV_CPPFLAGS += -I$(dir)/include
+diff --git a/cli_test/drivers/source/udma_cam_driver.c b/cli_test/drivers/source/udma_cam_driver.c
+index 4af7a22..b138905 100644
+--- a/cli_test/drivers/source/udma_cam_driver.c
++++ b/cli_test/drivers/source/udma_cam_driver.c
+@@ -35,6 +35,102 @@
+ #include "drivers/include/himax.h"
+ #include "drivers/include/camera.h"
+ 
++reg_cfg_t himaxRegInit[] = {
++    {BLC_TGT, 0x08},            //  BLC target :8  at 8 bit mode
++    {BLC2_TGT, 0x08},           //  BLI target :8  at 8 bit mode
++    {0x3044, 0x0A},             //  Increase CDS time for settling
++    {0x3045, 0x00},             //  Make symetric for cds_tg and rst_tg
++    {0x3047, 0x0A},             //  Increase CDS time for settling
++    {0x3050, 0xC0},             //  Make negative offset up to 4x
++    {0x3051, 0x42},
++    {0x3052, 0x50},
++    {0x3053, 0x00},
++    {0x3054, 0x03},             //  tuning sf sig clamping as lowest
++    {0x3055, 0xF7},             //  tuning dsun
++    {0x3056, 0xF8},             //  increase adc nonoverlap clk
++    {0x3057, 0x29},             //  increase adc pwr for missing code
++    {0x3058, 0x1F},             //  turn on dsun
++    {0x3059, 0x1E},
++    {0x3064, 0x00},
++    {0x3065, 0x04},             //  pad pull 0
++
++    {BLC_CFG, 0x43},            //  BLC_on, IIR
++
++    {0x1001, 0x43},             //  BLC dithering en
++    {0x1002, 0x43},             //  blc_darkpixel_thd
++    {0x0350, 0x00},             //  Dgain Control
++    {BLI_EN, 0x01},             //  BLI enable
++    {0x1003, 0x00},             //  BLI Target [Def: 0x20]
++
++    {DPC_CTRL, 0x01},           //  DPC option 0: DPC off   1 : mono   3 : bayer1   5 : bayer2
++    {0x1009, 0xA0},             //  cluster hot pixel th
++    {0x100A, 0x60},             //  cluster cold pixel th
++    {SINGLE_THR_HOT, 0x90},     //  single hot pixel th
++    {SINGLE_THR_COLD, 0x40},    //  single cold pixel th
++    {0x1012, 0x00},             //  Sync. shift disable
++    {0x2000, 0x07},
++    {0x2003, 0x00},
++    {0x2004, 0x1C},
++    {0x2007, 0x00},
++    {0x2008, 0x58},
++    {0x200B, 0x00},
++    {0x200C, 0x7A},
++    {0x200F, 0x00},
++    {0x2010, 0xB8},
++    {0x2013, 0x00},
++    {0x2014, 0x58},
++    {0x2017, 0x00},
++    {0x2018, 0x9B},
++
++    {AE_CTRL,        0x01},      //Automatic Exposure Gain Control
++    {AE_TARGET_MEAN, 0x3C},      //AE target mean [Def: 0x3C]
++    {AE_MIN_MEAN,    0x0A},      //AE min target mean [Def: 0x0A]
++
++    {INTEGRATION_H,  0x00},      //Integration H [Def: 0x01]
++    {INTEGRATION_L,  0x60},      //Integration L [Def: 0x08]
++    {ANALOG_GAIN,    0x00},      //Analog Global Gain
++    {DAMPING_FACTOR, 0x20},      //Damping Factor [Def: 0x20]
++    {DIGITAL_GAIN_H, 0x01},      //Digital Gain High [Def: 0x01]
++    {DIGITAL_GAIN_L, 0x00},      //Digital Gain Low [Def: 0x00]
++
++    {0x2103, 0x03},
++
++    {0x2104, 0x05},
++    {0x2105, 0x01},
++
++    {0x2106, 0x54},
++
++    {0x2108, 0x03},
++    {0x2109, 0x04},
++
++    {0x210B, 0xC0},
++    {0x210E, 0x00}, //Flicker Control
++    {0x210F, 0x00},
++    {0x2110, 0x3C},
++    {0x2111, 0x00},
++    {0x2112, 0x32},
++
++    {0x2150, 0x30},
++    {0x0340, 0x02},
++    {0x0341, 0x16},
++    {0x0342, 0x01},
++    {0x0343, 0x78},
++    {0x3010, 0x01},
++    {0x0383, 0x01},
++    {0x0387, 0x01},
++    {0x0390, 0x00},
++    {0x3011, 0x70},
++    {0x3059, 0x02},
++    {0x3060, 0x01},
++//    {0x3060, 0x25}, //Clock gating and clock divisors
++    {0x3068, 0x20}, //PCLK0 polarity
++    {IMG_ORIENTATION, 0x01}, // change the orientation
++    {0x0104, 0x01},
++    {0x0100, 0x01},
++	//{0x0601, 0x11}	//Test pattern walking ones
++	//{0x0601, 0x01}	//Test pattern colour bar
++};
++
+ SemaphoreHandle_t  cam_semaphore_rx;
+ static uint8_t cam;
+ static void camISR() {
+diff --git a/cli_test/drivers/source/udma_qspi_driver.c b/cli_test/drivers/source/udma_qspi_driver.c
+index 0a88d03..fe3174c 100644
+--- a/cli_test/drivers/source/udma_qspi_driver.c
++++ b/cli_test/drivers/source/udma_qspi_driver.c
+@@ -209,7 +209,7 @@ void udma_qspim_write (uint8_t qspim_id, uint8_t cs, uint16_t write_len, uint8_t
+ 
+ 
+ 		pqspim_regs->tx_saddr = write_data;
+-		pqspim_regs->tx_size = write_len-1;
++		pqspim_regs->tx_size = write_len;
+ 		pqspim_regs->tx_cfg_b.datasize = 2;
+ 		pqspim_regs->tx_cfg_b.en = 1;
+ 
+@@ -282,6 +282,7 @@ uint32_t udma_flash_reset_memory(uint8_t qspim_id, uint8_t cs)
+ 	return result;
+ }
+ 
++static uint8_t rx_data[16];
+ uint32_t udma_flash_readid(uint8_t qspim_id, uint8_t cs) {
+ 	UdmaQspi_t*	pqspim_regs = (UdmaQspi_t*)(UDMA_CH_ADDR_QSPIM + qspim_id * UDMA_CH_SIZE);
+ 	uint32_t*	pcmd = auccmd;
+@@ -301,7 +302,7 @@ uint32_t udma_flash_readid(uint8_t qspim_id, uint8_t cs) {
+ 	*pcmd++ = kSPIm_RxData | (0x00470000 | (4-1)) ; // 4 words recieved
+ 	*pcmd++ = kSPIm_EOT  | 1; // generate event
+ 
+-	pqspim_regs->rx_saddr = &result;
++	pqspim_regs->rx_saddr = &rx_data;
+ 	pqspim_regs->rx_size = 4;
+ 	pqspim_regs->rx_cfg_b.en = 1;
+ 
+@@ -310,6 +311,8 @@ uint32_t udma_flash_readid(uint8_t qspim_id, uint8_t cs) {
+ 	pqspim_regs->cmd_cfg_b.en = 1;
+ 
+ 	while (pqspim_regs->rx_size != 0) {}
++
++	result = *(uint32_t *) rx_data;
+ 	return result;
+ }
+ 
+@@ -347,7 +350,6 @@ uint8_t udma_flash_erase(uint8_t qspim_id, uint8_t cs, uint32_t addr, uint8_t cm
+ 		pqspim_regs->cmd_cfg_b.en = 1;
+ 		configASSERT( xSemaphoreTake( shSemaphoreHandle, 1000000 ) == pdTRUE );
+ 
+-
+ 		pqspim_regs->rx_cfg_b.en = 0;
+ 		pqspim_regs->tx_cfg_b.en = 0;
+ 		pqspim_regs->cmd_cfg_b.en = 0;
+@@ -356,11 +358,10 @@ uint8_t udma_flash_erase(uint8_t qspim_id, uint8_t cs, uint32_t addr, uint8_t cm
+ 		*pcmd++ = kSPIm_SOT | cs;
+ 		*pcmd++ = kSPIm_SendCmd | (0x70000) | cmd; // write enable command
+ 		*pcmd++ = kSPIm_SendCmd | (0xf0000) | ((addr >> 8) & 0xffff);
+-		*pcmd++ = kSPIm_SendCmd | (0x70000) | (addr && 0xff);
++		*pcmd++ = kSPIm_SendCmd | (0x70000) | (addr & 0xff);
+ //		*pcmd++ = kSPIm_RxData | (0x00470000 | (4-1)) ; // 4 words recieved
+ 		*pcmd++ = kSPIm_EOT  | 1; // generate event
+ 
+-
+ 		pqspim_regs->cmd_saddr = auccmd;
+ 		pqspim_regs->cmd_size = (uint32_t)(pcmd - auccmd)*4;
+ 		pqspim_regs->cmd_cfg_b.en = 1;
+@@ -524,7 +525,7 @@ void udma_flash_write(uint8_t qspim_id, uint8_t cs, uint32_t flash_addr,
+ 		*pcmd++ = kSPIm_EOT  | 1; // generate event
+ 
+ 		pqspim_regs->tx_saddr = l2addr;
+-		pqspim_regs->tx_size = write_len-1;
++		pqspim_regs->tx_size = write_len;
+ 		pqspim_regs->tx_cfg_b.en = 1;
+ 
+ 		pqspim_regs->cmd_saddr = auccmd;
+diff --git a/cli_test/env/core-v-mcu.sh b/cli_test/env/core-v-mcu.sh
+new file mode 100644
+index 0000000..45456b6
+--- /dev/null
++++ b/cli_test/env/core-v-mcu.sh
+@@ -0,0 +1,23 @@
++#!/usr/bin/env bash
++
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# var that points to this project's root
++ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
++export FREERTOS_PROJ_ROOT="$ROOT"
++export FREERTOS_CONFIG_FAMILY="core-v-mcu"
+diff --git a/cli_test/hal/include/hal_udma_qspi_reg_defs.h b/cli_test/hal/include/hal_udma_qspi_reg_defs.h
+index 5a16c55..d3d257c 100644
+--- a/cli_test/hal/include/hal_udma_qspi_reg_defs.h
++++ b/cli_test/hal/include/hal_udma_qspi_reg_defs.h
+@@ -67,7 +67,7 @@ typedef struct {
+       __IO uint32_t  datasize   :  2;
+       __IO uint32_t             :  1;
+       __IO uint32_t  en         :  1;
+-//      __IO uint32_t  pending    :  1;
++      __IO uint32_t  pending    :  1;
+       __IO uint32_t  clr        :  1;
+     } rx_cfg_b;
+   };
+@@ -97,7 +97,7 @@ typedef struct {
+       __IO uint32_t  datasize   :  2;
+       __IO uint32_t             :  1;
+       __IO uint32_t  en         :  1;
+- //     __IO uint32_t  pending    :  1;
++      __IO uint32_t  pending    :  1;
+       __IO uint32_t  clr        :  1;
+     } tx_cfg_b;
+   };
+@@ -127,7 +127,7 @@ typedef struct {
+       __IO uint32_t  datasize   :  2;
+       __IO uint32_t             :  1;
+       __IO uint32_t  en         :  1;
+-  //    __IO uint32_t  pending    :  1;
++      __IO uint32_t  pending    :  1;
+       __IO uint32_t  clr        :  1;
+     } cmd_cfg_b;
+   };
+diff --git a/cli_test/hal/makefile.mk b/cli_test/hal/makefile.mk
+new file mode 100644
+index 0000000..3eb0845
+--- /dev/null
++++ b/cli_test/hal/makefile.mk
+@@ -0,0 +1,30 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++SRCS += $(dir)/source/hal_apb_i2cs.c
++SRCS += $(dir)/source/hal_fc_event.c
++SRCS += $(dir)/source/hal_fll_pi.c
++SRCS += $(dir)/source/hal_fll.c
++SRCS += $(dir)/source/hal_gpio_pulp.c
++SRCS += $(dir)/source/hal_gpio.c
++SRCS += $(dir)/source/hal_irq.c
++SRCS += $(dir)/source/hal_pinmux.c
++SRCS += $(dir)/source/hal_pinmux1.c
++SRCS += $(dir)/source/hal_soc_eu.c
++SRCS += $(dir)/source/hal_timer_irq.c
++
++#CV_CPPFLAGS += -I$(dir)/include
+\ No newline at end of file
+diff --git a/cli_test/kernel/event_groups.o b/cli_test/kernel/event_groups.o
+deleted file mode 100755
+index d956590..0000000
+Binary files a/cli_test/kernel/event_groups.o and /dev/null differ
+diff --git a/cli_test/kernel/event_groups.su b/cli_test/kernel/event_groups.su
+deleted file mode 100755
+index aa7ff42..0000000
+--- a/cli_test/kernel/event_groups.su
++++ /dev/null
+@@ -1,14 +0,0 @@
+-event_groups.c:671:19:prvTestWaitCondition	0	static
+-event_groups.c:145:21:xEventGroupCreate	16	static
+-event_groups.c:311:13:xEventGroupWaitBits	32	static
+-event_groups.c:461:13:xEventGroupClearBits	16	static
+-event_groups.c:665:6:vEventGroupClearBitsCallback	16	static
+-event_groups.c:490:13:xEventGroupClearBitsFromISR	16	static
+-event_groups.c:503:13:xEventGroupGetBitsFromISR	0	static
+-event_groups.c:519:13:xEventGroupSetBits	32	static
+-event_groups.c:191:13:xEventGroupSync	32	static
+-event_groups.c:657:6:vEventGroupSetBitsCallback	16	static
+-event_groups.c:613:6:vEventGroupDelete	16	static
+-event_groups.c:708:13:xEventGroupSetBitsFromISR	16	static
+-event_groups.c:723:14:uxEventGroupGetNumber	0	static
+-event_groups.c:745:7:vEventGroupSetNumber	0	static
+diff --git a/cli_test/kernel/list.o b/cli_test/kernel/list.o
+deleted file mode 100755
+index c46b00f..0000000
+Binary files a/cli_test/kernel/list.o and /dev/null differ
+diff --git a/cli_test/kernel/list.su b/cli_test/kernel/list.su
+deleted file mode 100755
+index 7dbb947..0000000
+--- a/cli_test/kernel/list.su
++++ /dev/null
+@@ -1,5 +0,0 @@
+-list.c:37:6:vListInitialise	0	static
+-list.c:62:6:vListInitialiseItem	0	static
+-list.c:74:6:vListInsertEnd	0	static
+-list.c:103:6:vListInsert	0	static
+-list.c:170:13:uxListRemove	0	static
+diff --git a/cli_test/kernel/portable/GCC/RISC-V/chip_specific_extensions/PULPissimo/freertos_risc_v_chip_specific_extensions.h b/cli_test/kernel/portable/GCC/RISC-V/chip_specific_extensions/PULPissimo/freertos_risc_v_chip_specific_extensions.h
+index 62cd7ef..7903e1a 100755
+--- a/cli_test/kernel/portable/GCC/RISC-V/chip_specific_extensions/PULPissimo/freertos_risc_v_chip_specific_extensions.h
++++ b/cli_test/kernel/portable/GCC/RISC-V/chip_specific_extensions/PULPissimo/freertos_risc_v_chip_specific_extensions.h
+@@ -61,7 +61,7 @@
+ #define __FREERTOS_RISC_V_EXTENSIONS_H__
+ 
+ //#define portasmHAS_CLINT 0
+-#define portasmHAS_MTIME 1
++#define portasmHAS_MTIME 0
+ 
+ /* Constants to define the additional registers found on the Pulpino RI5KY. */
+ #define lpstart0 	0x800
+diff --git a/cli_test/kernel/portable/GCC/RISC-V/port.o b/cli_test/kernel/portable/GCC/RISC-V/port.o
+deleted file mode 100755
+index 8a3525b..0000000
+Binary files a/cli_test/kernel/portable/GCC/RISC-V/port.o and /dev/null differ
+diff --git a/cli_test/kernel/portable/GCC/RISC-V/port.su b/cli_test/kernel/portable/GCC/RISC-V/port.su
+deleted file mode 100755
+index 8cfc74e..0000000
+--- a/cli_test/kernel/portable/GCC/RISC-V/port.su
++++ /dev/null
+@@ -1,2 +0,0 @@
+-port.c:150:12:xPortStartScheduler	32	static
+-port.c:206:6:vPortEndScheduler	0	static
+diff --git a/cli_test/kernel/portable/GCC/RISC-V/portASM.o b/cli_test/kernel/portable/GCC/RISC-V/portASM.o
+deleted file mode 100755
+index abf366c..0000000
+Binary files a/cli_test/kernel/portable/GCC/RISC-V/portASM.o and /dev/null differ
+diff --git a/cli_test/kernel/portable/MemMang/heap_3.o b/cli_test/kernel/portable/MemMang/heap_3.o
+deleted file mode 100755
+index 6472aa9..0000000
+Binary files a/cli_test/kernel/portable/MemMang/heap_3.o and /dev/null differ
+diff --git a/cli_test/kernel/portable/MemMang/heap_3.su b/cli_test/kernel/portable/MemMang/heap_3.su
+deleted file mode 100755
+index c85ec4f..0000000
+--- a/cli_test/kernel/portable/MemMang/heap_3.su
++++ /dev/null
+@@ -1,2 +0,0 @@
+-heap_3.c:58:7:pvPortMalloc	16	static
+-heap_3.c:83:6:vPortFree	16	static
+diff --git a/cli_test/kernel/queue.o b/cli_test/kernel/queue.o
+deleted file mode 100755
+index 56007b7..0000000
+Binary files a/cli_test/kernel/queue.o and /dev/null differ
+diff --git a/cli_test/kernel/queue.su b/cli_test/kernel/queue.su
+deleted file mode 100755
+index c4b9ff9..0000000
+--- a/cli_test/kernel/queue.su
++++ /dev/null
+@@ -1,37 +0,0 @@
+-queue.c:2049:21:prvGetDisinheritPriorityAfterTimeout	0	static
+-queue.c:2331:19:prvIsQueueFull	16	static
+-queue.c:2291:19:prvIsQueueEmpty	16	static
+-queue.c:2074:19:prvCopyDataToQueue	16	static
+-queue.c:2153:13:prvCopyDataFromQueue	16	static
+-queue.c:2171:13:prvUnlockQueue	16	static
+-queue.c:255:12:xQueueGenericReset	16	static
+-queue.c:422:13:prvInitialiseNewQueue	16	static
+-queue.c:368:16:xQueueGenericCreate	32	static
+-queue.c:532:15:xQueueGetMutexHolder	16	static
+-queue.c:563:15:xQueueGetMutexHolderFromISR	16	static
+-queue.c:714:16:xQueueCreateCountingSemaphore	16	static
+-queue.c:740:12:xQueueGenericSend	64	static
+-queue.c:466:14:prvInitialiseMutex	16	static
+-queue.c:496:16:xQueueCreateMutex	16	static
+-queue.c:589:13:xQueueGiveMutexRecursive	16	static
+-queue.c:950:12:xQueueGenericSendFromISR	32	static
+-queue.c:1112:12:xQueueGiveFromISR	16	static
+-queue.c:1277:12:xQueueReceive	64	static
+-queue.c:1418:12:xQueueSemaphoreTake	48	static
+-queue.c:644:13:xQueueTakeMutexRecursive	16	static
+-queue.c:1636:12:xQueuePeek	48	static
+-queue.c:1785:12:xQueueReceiveFromISR	32	static
+-queue.c:1876:12:xQueuePeekFromISR	16	static
+-queue.c:1930:13:uxQueueMessagesWaiting	16	static
+-queue.c:1946:13:uxQueueSpacesAvailable	16	static
+-queue.c:1963:13:uxQueueMessagesWaitingFromISR	16	static
+-queue.c:2019:14:uxQueueGetQueueNumber	0	static
+-queue.c:2029:7:vQueueSetQueueNumber	0	static
+-queue.c:2039:10:ucQueueGetQueueType	0	static
+-queue.c:2312:12:xQueueIsQueueEmptyFromISR	16	static
+-queue.c:2352:12:xQueueIsQueueFullFromISR	16	static
+-queue.c:2648:7:vQueueAddToRegistry	0	static
+-queue.c:2677:14:pcQueueGetName	0	static
+-queue.c:2705:7:vQueueUnregisterQueue	0	static
+-queue.c:1975:6:vQueueDelete	16	static
+-queue.c:2737:7:vQueueWaitForMessageRestricted	16	static
+diff --git a/cli_test/kernel/stream_buffer.o b/cli_test/kernel/stream_buffer.o
+deleted file mode 100755
+index 1f0fb61..0000000
+Binary files a/cli_test/kernel/stream_buffer.o and /dev/null differ
+diff --git a/cli_test/kernel/stream_buffer.su b/cli_test/kernel/stream_buffer.su
+deleted file mode 100755
+index 0d42382..0000000
+--- a/cli_test/kernel/stream_buffer.su
++++ /dev/null
+@@ -1,24 +0,0 @@
+-stream_buffer.c:1189:15:prvBytesInBuffer	0	static
+-stream_buffer.c:1209:13:prvInitialiseNewStreamBuffer	32	static
+-stream_buffer.c:1088:15:prvWriteBytesToBuffer	32	static
+-stream_buffer.c:661:15:prvWriteMessageToBuffer	32	static
+-stream_buffer.c:1134:15:prvReadBytesFromBuffer	32	static
+-stream_buffer.c:918:15:prvReadMessageFromBuffer	48	static
+-stream_buffer.c:219:23:xStreamBufferGenericCreate	32	static
+-stream_buffer.c:359:6:vStreamBufferDelete	16	static
+-stream_buffer.c:392:12:xStreamBufferReset	16	static
+-stream_buffer.c:441:12:xStreamBufferSetTriggerLevel	16	static
+-stream_buffer.c:470:8:xStreamBufferSpacesAvailable	16	static
+-stream_buffer.c:494:8:xStreamBufferBytesAvailable	16	static
+-stream_buffer.c:506:8:xStreamBufferSend	64	static
+-stream_buffer.c:610:8:xStreamBufferSendFromISR	32	static
+-stream_buffer.c:713:8:xStreamBufferReceive	32	static
+-stream_buffer.c:817:8:xStreamBufferNextMessageLengthBytes	32	static
+-stream_buffer.c:861:8:xStreamBufferReceiveFromISR	32	static
+-stream_buffer.c:970:12:xStreamBufferIsEmpty	16	static
+-stream_buffer.c:993:12:xStreamBufferIsFull	16	static
+-stream_buffer.c:1028:12:xStreamBufferSendCompletedFromISR	16	static
+-stream_buffer.c:1058:12:xStreamBufferReceiveCompletedFromISR	16	static
+-stream_buffer.c:1237:14:uxStreamBufferGetStreamBufferNumber	0	static
+-stream_buffer.c:1247:7:vStreamBufferSetStreamBufferNumber	0	static
+-stream_buffer.c:1257:10:ucStreamBufferGetStreamBufferType	0	static
+diff --git a/cli_test/kernel/tasks.o b/cli_test/kernel/tasks.o
+deleted file mode 100755
+index 51eb190..0000000
+Binary files a/cli_test/kernel/tasks.o and /dev/null differ
+diff --git a/cli_test/kernel/tasks.su b/cli_test/kernel/tasks.su
+deleted file mode 100755
+index a044b0c..0000000
+--- a/cli_test/kernel/tasks.su
++++ /dev/null
+@@ -1,65 +0,0 @@
+-tasks.c:2372:16:prvSearchForNameWithinSingleList	0	static
+-tasks.c:3799:32:prvTaskCheckFreeStackSpace	0	static
+-tasks.c:3943:13:prvResetNextTaskUnblockTime	0	static
+-tasks.c:1805:20:prvTaskIsTaskSuspended	16	static
+-tasks.c:824:13:prvInitialiseNewTask	48	static
+-tasks.c:3607:13:prvInitialiseTaskLists	16	static
+-tasks.c:3887:14:prvDeleteTCB	16	static
+-tasks.c:5177:13:prvAddCurrentTaskToDelayedList	16	static
+-tasks.c:1500:14:uxTaskPriorityGetFromISR	0	static
+-tasks.c:1905:13:xTaskResumeFromISR	16	static
+-tasks.c:2099:6:vTaskEndScheduler	16	static
+-tasks.c:2110:6:vTaskSuspendAll	0	static
+-tasks.c:2304:12:xTaskGetTickCount	0	static
+-tasks.c:2319:12:xTaskGetTickCountFromISR	0	static
+-tasks.c:2350:13:uxTaskGetNumberOfTasks	0	static
+-tasks.c:2358:7:pcTaskGetName	16	static
+-tasks.c:2707:12:xTaskIncrementTick	32	static
+-tasks.c:2989:6:vTaskSwitchContext	16	static
+-tasks.c:3064:6:vTaskPlaceOnEventList	16	static
+-tasks.c:3081:6:vTaskPlaceOnUnorderedEventList	16	static
+-tasks.c:3107:7:vTaskPlaceOnEventListRestricted	16	static
+-tasks.c:3138:12:xTaskRemoveFromEventList	16	static
+-tasks.c:3206:6:vTaskRemoveFromUnorderedEventList	16	static
+-tasks.c:3266:6:vTaskInternalSetTimeOutState	0	static
+-tasks.c:3337:6:vTaskMissedYield	0	static
+-tasks.c:3345:14:uxTaskGetTaskNumber	0	static
+-tasks.c:3368:7:vTaskSetTaskNumber	0	static
+-tasks.c:3969:15:xTaskGetCurrentTaskHandle	0	static
+-tasks.c:3986:13:xTaskGetSchedulerState	0	static
+-tasks.c:4014:13:xTaskPriorityInherit	16	static
+-tasks.c:4104:13:xTaskPriorityDisinherit	16	static
+-tasks.c:4184:7:vTaskPriorityDisinheritAfterTimeout	16	static
+-tasks.c:4289:7:vTaskEnterCritical	0	static
+-tasks.c:4319:7:vTaskExitCritical	0	static
+-tasks.c:1077:13:prvAddNewTaskToReadyList	16	static
+-tasks.c:733:13:xTaskCreate	48	static
+-tasks.c:1975:6:vTaskStartScheduler	16	static
+-tasks.c:1162:7:vTaskDelete	16	static
+-tasks.c:1386:13:eTaskGetState	32	static
+-tasks.c:1478:14:uxTaskPriorityGet	16	static
+-tasks.c:1540:7:vTaskPrioritySet	32	static
+-tasks.c:1704:7:vTaskSuspend	16	static
+-tasks.c:1851:7:vTaskResume	16	static
+-tasks.c:3639:13:prvCheckTasksWaitingTermination	16	static
+-tasks.c:3392:8:prvIdleTask	16	static
+-tasks.c:2194:12:xTaskResumeAll	16	static
+-tasks.c:1257:7:vTaskDelayUntil	16	static
+-tasks.c:1341:7:vTaskDelay	16	static
+-tasks.c:2440:15:xTaskGetHandle	16	static
+-tasks.c:2609:12:xTaskCatchUpTicks	16	static
+-tasks.c:3670:7:vTaskGetInfo	16	static
+-tasks.c:3766:21:prvListTasksWithinSingleList	32	static
+-tasks.c:2505:14:uxTaskGetSystemState	32	static
+-tasks.c:2629:13:xTaskAbortDelay	16	static
+-tasks.c:3254:6:vTaskSetTimeOutState	16	static
+-tasks.c:3274:12:xTaskCheckForTimeOut	16	static
+-tasks.c:4602:12:uxTaskResetEventItemValue	0	static
+-tasks.c:4618:15:pvTaskIncrementMutexHeldCount	0	static
+-tasks.c:4635:11:ulTaskNotifyTake	16	static
+-tasks.c:4703:13:xTaskNotifyWait	32	static
+-tasks.c:4783:13:xTaskGenericNotify	32	static
+-tasks.c:4897:13:xTaskGenericNotifyFromISR	32	static
+-tasks.c:5026:7:vTaskNotifyGiveFromISR	16	static
+-tasks.c:5112:13:xTaskNotifyStateClear	16	static
+-tasks.c:5143:11:ulTaskNotifyValueClear	16	static
+diff --git a/cli_test/kernel/timers.o b/cli_test/kernel/timers.o
+deleted file mode 100755
+index ca4c9d7..0000000
+Binary files a/cli_test/kernel/timers.o and /dev/null differ
+diff --git a/cli_test/kernel/timers.su b/cli_test/kernel/timers.su
+deleted file mode 100755
+index 75d7baa..0000000
+--- a/cli_test/kernel/timers.su
++++ /dev/null
+@@ -1,26 +0,0 @@
+-timers.c:644:19:prvGetNextExpireTime	0	static
+-timers.c:693:19:prvInsertTimerInActiveList	16	static
+-timers.c:941:13:prvCheckForValidListAndQueue	16	static
+-timers.c:349:13:prvInitialiseNewTimer	32	static
+-timers.c:227:12:xTimerCreateTimerTask	16	static
+-timers.c:282:16:xTimerCreate	32	static
+-timers.c:381:12:xTimerGenericCommand	32	static
+-timers.c:882:13:prvSwitchTimerLists	16	static
+-timers.c:670:19:prvSampleTimeNow	16	static
+-timers.c:507:13:prvProcessExpiredTimer	16	static
+-timers.c:584:13:prvProcessTimerOrBlockTask	32	static
+-timers.c:734:13:prvProcessReceivedCommands	48	static
+-timers.c:548:8:prvTimerTask	32	static
+-timers.c:424:14:xTimerGetTimerDaemonTaskHandle	16	static
+-timers.c:433:12:xTimerGetPeriod	16	static
+-timers.c:442:6:vTimerSetReloadMode	16	static
+-timers.c:462:13:uxTimerGetReloadMode	16	static
+-timers.c:487:12:xTimerGetExpiryTime	16	static
+-timers.c:498:14:pcTimerGetName	16	static
+-timers.c:992:12:xTimerIsTimerActive	16	static
+-timers.c:1017:7:pvTimerGetTimerID	16	static
+-timers.c:1034:6:vTimerSetTimerID	16	static
+-timers.c:1050:13:xTimerPendFunctionCallFromISR	32	static
+-timers.c:1074:13:xTimerPendFunctionCall	32	static
+-timers.c:1103:14:uxTimerGetTimerNumber	0	static
+-timers.c:1113:7:vTimerSetTimerNumber	0	static
+diff --git a/cli_test/libs/makefile.mk b/cli_test/libs/makefile.mk
+new file mode 100644
+index 0000000..1d5798b
+--- /dev/null
++++ b/cli_test/libs/makefile.mk
+@@ -0,0 +1,28 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++SRCS += $(dir)/cli/source/cli_args.c
++SRCS += $(dir)/cli/source/cli_filesystem.c
++SRCS += $(dir)/cli/source/cli_hexdump.c
++SRCS += $(dir)/cli/source/cli_io.c
++SRCS += $(dir)/cli/source/cli_loop.c
++SRCS += $(dir)/cli/source/cli_misc.c
++SRCS += $(dir)/cli/source/cli_platform.c
++SRCS += $(dir)/cli/source/cli_stdcmds.c
++SRCS += $(dir)/utils/source/dbg_uart.c
++
++#CV_CPPFLAGS += -I$(dir)/include
+diff --git a/cli_test/metal_srcs.mk b/cli_test/metal_srcs.mk
+new file mode 100644
+index 0000000..c9b12fa
+--- /dev/null
++++ b/cli_test/metal_srcs.mk
+@@ -0,0 +1,62 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# expects RTOS_ROOT to point to the FreeRTOS distribution root
++# and COMMON_ROOT to the driver folder
++
++# general OS
++dir := $(FREERTOS_PROJ_ROOT)/kernel
++
++SRCS += $(dir)/event_groups.c
++SRCS += $(dir)/list.c
++SRCS += $(dir)/queue.c
++SRCS += $(dir)/stream_buffer.c
++SRCS += $(dir)/tasks.c
++SRCS += $(dir)/timers.c
++# RISC-V port files
++SRCS += $(dir)/portable/GCC/RISC-V/port.c
++SRCS += $(dir)/portable/GCC/RISC-V/portASM.S
++# memory managment
++SRCS += $(dir)/portable/MemMang/heap_2.c
++# freertos generic headers
++CV_CPPFLAGS += -I"$(dir)/include"
++CV_CPPFLAGS += -I"$(dir)/portable/GCC/RISC-V"
++# freertos header for assembler
++CV_CPPFLAGS += -I"$(dir)/portable/GCC/RISC-V/chip_specific_extensions/PULPissimo"
++
++# arch (RISC-V) specific
++#dir := $(FREERTOS_PROJ_ROOT)/target/arch
++#include $(dir)/makefile.mk
++
++dir := $(FREERTOS_PROJ_ROOT)/libs
++include $(dir)/makefile.mk
++
++# hal drivers
++dir := $(FREERTOS_PROJ_ROOT)/hal
++include $(dir)/makefile.mk
++
++# drivers
++dir := $(FREERTOS_PROJ_ROOT)/drivers
++include $(dir)/makefile.mk
++
++# runtime
++dir := $(FREERTOS_PROJ_ROOT)/target
++include $(dir)/makefile.mk
++
++#n25q driver
++dir := $(FREERTOS_PROJ_ROOT)/app/N25Q_16Mb-1Gb_Device_Driver
++include $(dir)/makefile.mk
+\ No newline at end of file
+diff --git a/cli_test/scripts/README_MEM.md b/cli_test/scripts/README_MEM.md
+new file mode 100644
+index 0000000..711eb40
+--- /dev/null
++++ b/cli_test/scripts/README_MEM.md
+@@ -0,0 +1,71 @@
++# mem.tcl
++Read, write and convert verilog style memory dumps. Mainly used with vsim and
++PULP/PULPissimo. You use this to
++
++- Convert verilog style memory dumps depending on your needs (addressing, word
++  width etc.)
++- Dump the contents of memories during simulation (finding heap corruption bugs etc.)
++- Generate memory images from an executable to be preloaded by the simulator.
++  Speeds up simulation time.
++
++## Why TCL
++Simply because most EDA tools use TCL as scripting language. This makes
++integrating memory manipulation easier to e.g. simulators. One usecase is
++dumping the L2 at some point during simulation for some manipulations and then
++reading it back again.
++
++## Usage
++### As a library
++With your tclsh:
++```bash
++tclsh
++source mem.tcl
++```
++Now first generate a verilog style dump from your elf:
++```bash
++riscv32-unknown-elf-objcopy -O verilog my-elf mem.verilog
++```
++or generate it from a PULP simulation:
++```tclsh
++pulp_dump_mem_l2 mem.verilog
++```
++
++Examples:
++
++Change word width of a memory dump
++```tclsh
++# read into internal representation
++set my_dump [read_mem_dump mem.verilog]
++
++# change word width, also consider endianness
++set my_dump change_width_mem_dump $my_dump 1 4 "little" "big"
++
++# The addressing is still byte addressing, we need to change to word addressing
++# The scaling of addresses is done relativ to the base_addr
++set base_addr 0x1c000000
++set my_dump [scale_addr_mem_dump $my_dump $base_addr 1 4]
++
++# write back to a file
++write_mem_dump $my_dump mem4.verilog
++```
++
++### As a script
++You can use `mem.tcl` as a script to generate a memory image for each bank in L2
++from an executable. This is mainly to bypass loading the executable via jtag
++during simulation, which is very slow (512 kiB takes tens of minutes to load).
++
++Usually you do something like this:
++```bash
++riscv32-unknown-elf-objcopy -O verilog my-elf preload.verilog
++./mem.tcl preload.verilog out_dir
++# when running the pulp/pulpissimo simulation pass the directory
++vsim ... +preload=out_dir
++```
++
++You might think to use the `--verilog-data-width=val` option to generate a
++different word width instead of using `mem.tcl` but this is broken for two
++reasons:
++1. the wrong endianness is used (always big-endian)
++2. the wrong addressing is used (byte addressing instead of `val` width specific
++   addressing). This conversion is anyway only possible by knowing the base
++   address of memories.
+diff --git a/cli_test/scripts/__pycache__/stim_utils.cpython-36.pyc b/cli_test/scripts/__pycache__/stim_utils.cpython-36.pyc
+new file mode 100644
+index 0000000..a1c95c7
+Binary files /dev/null and b/cli_test/scripts/__pycache__/stim_utils.cpython-36.pyc differ
+diff --git a/cli_test/scripts/bindiff.sh b/cli_test/scripts/bindiff.sh
+new file mode 100644
+index 0000000..f92e3c3
+--- /dev/null
++++ b/cli_test/scripts/bindiff.sh
+@@ -0,0 +1,27 @@
++#!/usr/bin/env bash
++
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++usage () {
++    echo "Usage: bindiff elf-a elf-b"
++    exit
++}
++[[ -n $RISCV ]] || { echo "RISCV environment variable unset. Please point it to your toolchain."; exit 1; }
++[[ -f $1 ]] || usage
++[[ -f $2 ]] || usage
++scripts/elf_diff/bin/elf_diff --bin_dir "$RISCV/bin" --bin-prefix "riscv32-unknown-elf-" $1 $2
+diff --git a/cli_test/scripts/elf-diff-py3.patch b/cli_test/scripts/elf-diff-py3.patch
+new file mode 100644
+index 0000000..5b4fc59
+--- /dev/null
++++ b/cli_test/scripts/elf-diff-py3.patch
+@@ -0,0 +1,10 @@
++diff --git a/bin/elf_diff b/bin/elf_diff
++index c8e5ef4..6aa7d69 100755
++--- a/bin/elf_diff
+++++ b/bin/elf_diff
++@@ -1,4 +1,4 @@
++-#!/usr/bin/python
+++#!/usr/bin/python3
++   
++ # -*- coding: utf-8 -*-
++ 
+diff --git a/cli_test/scripts/install-elf-diff.sh b/cli_test/scripts/install-elf-diff.sh
+new file mode 100644
+index 0000000..517ca5a
+--- /dev/null
++++ b/cli_test/scripts/install-elf-diff.sh
+@@ -0,0 +1,23 @@
++#!/usr/bin/env bash
++
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++[[ ! -d elf_diff ]] || { echo "elf_diff is already downloaded. Aborting."; exit 1; }
++
++git clone git@github.com:bluewww/elf_diff.git
++patch -p1 -d elf_diff/ < elf-diff-py3.patch
+diff --git a/cli_test/scripts/mem.tcl b/cli_test/scripts/mem.tcl
+new file mode 100644
+index 0000000..588c1f3
+--- /dev/null
++++ b/cli_test/scripts/mem.tcl
+@@ -0,0 +1,680 @@
++#!/usr/bin/env tclsh
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# Various utilities for interacting with a simulation of pulp/pulpissimo
++
++# the interesting functions for a user are:
++# pulp_dump_mem_l2 path - generate a full memory dump as seen from the processor
++# pulp_dump_mem_l2_multiple - dumps all l2 related memory contents to multiple
++# files
++# pulp_flatten_mem_dump - generate a flat memory dump (processor view) of the
++#    memory dump for pulp/pulpissimo from an existing dump generated by
++#    dump_mem_l2_multiple
++# pulp_conv_mem_dump dump_file out_dir - generate a memory image from an
++#   executable for pulp based systems
++# read_mem_dump name - read a verilog memory dump
++# write_mem_dump name - write a verilog memory dump
++# cat_mem_dump dump0 dump1 - naively concatenate memory dumps
++# split_mem_dump dump split_addr - split a dump into two dumps
++# adjust_addr_mem_dump dump offset - change addresses by offset
++# merge_mem_dump dump0 dump1 - TODO
++# scale_addr_mem_dump dump base_addr scale_n scale_d - scale addresses relative
++#   to base_addr by scale_n/scale_d
++# fill_mem_dump dump base_addr end_addr width - explicitely fill address range
++# deinterleave_mem_dump dump num_banks base_addr - split a memory dump according
++#   to the given interleaving pattern
++# change_width_mem_dump dump from_width to_width from_endian to_endian -
++#  convert between different word widths
++
++# dump the l2 memory of pulp/pulpissmo. This generates a flat view as seen from
++# the processor. Note that that the addresses are byte addresses despite the
++# native addressing being word addresses. Set scale to 1 if you want the correct
++# verilog addresses.
++proc pulp_dump_mem_l2 {name {scale 4} {base_addr 0x1c000000}} {
++    set tmpdir [exec mktemp -d -p .]
++    try {
++        pulp_dump_mem_l2_multiple $tmpdir
++        pulp_flatten_mem_dump $tmpdir $name $base_addr $scale
++    } finally {
++        file delete -force -- $tmpdir
++    }
++}
++
++# dump the l2 memory of pulp/pulpissimo. This needs careful adjustments when
++# changing the memory architecture
++proc pulp_dump_mem_l2_multiple {path} {
++    echo "dumping l2 memory contents to $path"
++    set num_banks [examine -radix dec /tb_pulp/i_dut/soc_domain_i/pulp_soc_i/NB_L2_BANKS]
++    set num_priv_banks [examine -radix dec /tb_pulp/i_dut/soc_domain_i/pulp_soc_i/NB_L2_BANKS_PRI]
++
++    echo "Number of general memory banks (NB_L2_BANKS): $num_banks"
++    echo "Number of private memory banks (NB_L2_BANKS_PRI): $num_priv_banks"
++
++    # private banks
++    for {set n 0} {$n < $num_priv_banks} {incr n} { # banks (normally 2)
++        mem save -outfile [file join $path/ private_bank_${n}] \
++            /tb_pulp/i_dut/soc_domain_i/pulp_soc_i/l2_ram_i/bank_sram_pri${n}_i/MEM \
++            -format hex
++    }
++
++    # banked l2
++    for {set i 0} {$i < $num_banks} {incr i} { # banks (normally 4)
++        for {set j 0} {$j < 7} {incr j} { # cuts in bank
++            mem save -outfile [file join $path/ bank_${i}_cut_${j}] \
++                /tb_pulp/i_dut/soc_domain_i/pulp_soc_i/l2_ram_i/CUTS\[$i\]/bank_i/cut_$j/MEM \
++                -format hex
++        }
++    }
++
++    echo "done"
++}
++
++# flattens verilog style memory dumps that are banked according to some pattern.
++# This is hardcoded for pulp/pulpissimo
++# TODO: we are leaking fds
++proc pulp_flatten_mem_dump  {path {name flatten.dump} {base_addr 0x1c000000} {scale 1}} {
++    puts "generating a flat memory dump in $name reading from $path"
++
++    set num_banks 4
++    set num_priv_banks 2
++
++    puts "Number of general memory banks: $num_banks"
++    puts "Number of private memory banks: $num_priv_banks"
++
++    # 0x2000 words in private bank0
++    # 0x2000 words in private bank1
++    # 0x7000 words in bank0
++    # 0x7000 words in bank1
++    # 0x7000 words in bank2
++    # 0x7000 words in bank3
++    # total 0x1c000 words which is 512 kiB
++    array set private_bank_dump {}
++    array set bank_dump {}
++
++    # load private banks
++    for {set n 0} {$n < $num_priv_banks} {incr n} { # banks (normally 2)
++        set private_bank_dump($n) [read_mem_dump [file join $path/ private_bank_${n}]]
++    }
++    # concatenate the private banks
++    # offset is 0x4000 since 64KiB in 32-bit words is 0x2000
++    set private_bank [cat_mem_dump $private_bank_dump(0) [adjust_addr_mem_dump $private_bank_dump(1) 0x2000]]
++
++    # load banked l2
++    for {set i 0} {$i < $num_banks} {incr i} { # banks (normally 4)
++        set bank {}
++        for {set j 0} {$j < 7} {incr j} { # cuts in bank
++            set bank_cut [read_mem_dump [file join $path/ bank_${i}_cut_${j}]]
++            # concatenate the cuts, each 4 KiB
++            set bank [cat_mem_dump $bank [adjust_addr_mem_dump $bank_cut [expr {$j * 0x1000}]]]
++        }
++        set bank_dump($i) $bank
++    }
++
++    # merge the interleaved banks
++    set merged {}
++
++    # TODO: sanity check the banks for size and format etc.
++    set lines [llength $bank_dump(0)]
++
++    for {set i 0} {$i < $lines} {incr i} { # lines
++        for {set n 0} {$n < $num_banks} {incr n} { # banks
++            set elem [lindex [lindex $bank_dump($n) $i] 1]
++            lappend merged $elem
++        }
++    }
++
++    # validation hack for specific memory dumps
++    # set count 1
++    # foreach ele $merged {
++    #     if {[expr 0x$ele] != $count} {
++    #         puts "ele=$ele, count=$count"
++    #         error "bad count"
++    #     }
++    #     incr count
++    # }
++
++    # concatenate private and interleaved banks and write
++    set bank_merged [list_to_mem_dump $merged 0]
++    set final_dump [cat_mem_dump $private_bank [adjust_addr_mem_dump $bank_merged 0x4000]]
++
++    # adjust base address
++    set final_dump [adjust_addr_mem_dump $final_dump $base_addr $scale]
++    # don't care about spaced addressing when writing because we went from word
++    # addressing to byte addressing
++    write_mem_dump $final_dump $name 8 true
++
++    puts "done"
++}
++
++# Splits a verilog style memory of an objcopy'd elf file into multiple verilog
++# style memory dumps (one per bank) so that it can be quickly preloaded in a
++# pulp/pulpissimo simulation with $readmemh. This is the opposite of
++# flatten_mem_dump.
++proc pulp_conv_mem_dump {dump_file out_dir {base_addr 0x1c000000} {end_addr 0x1c080000}} {
++    puts "converting a flat memory dump into multiple bank specific dumps from $dump_file to $out_dir"
++
++    set num_banks 4
++    set num_priv_banks 2
++
++    puts "Number of general memory banks: $num_banks"
++    puts "Number of private memory banks: $num_priv_banks"
++
++    # load elf, expect word width = 1 byte
++    set elf [read_mem_dump $dump_file]
++
++    # fill the holes in the address space with x's, this helps making the
++    # de-interleaving process easier
++    set elf [fill_mem_dump $elf $base_addr $end_addr 1]
++
++    # convert to 4-byte word addressing
++    set elf [change_width_mem_dump $elf 1 4 "little" "little"]
++    set elf [scale_addr_mem_dump $elf $base_addr 1 4]
++
++    write_mem_dump $elf [file join $out_dir/ elf.veri]
++
++    set privs [split_mem_dump $elf [expr {$base_addr + 0x2000}]]
++    set private_bank0 [adjust_addr_mem_dump [lindex $privs 0] -$base_addr 1]
++
++    # split the rest again
++    set privs [split_mem_dump [lindex $privs 1] [expr {$base_addr + 0x4000}]]
++    set private_bank1 [adjust_addr_mem_dump [lindex $privs 0] -[expr {$base_addr + 0x2000}] 1]
++
++    set interleaved [lindex $privs 1]
++
++    array set banks {}
++    set line_count 0
++    set interleaved_base_addr [expr {$base_addr + 0x4000}]
++
++    foreach line $interleaved {
++        set addr [expr [lindex $line 0]]
++        set value [lindex $line 1]
++        set index [expr {$line_count % $num_banks}]
++
++        # rewrite bank addresses
++        set increment [expr {$addr - $interleaved_base_addr}]
++        set new_addr [expr {$interleaved_base_addr + ($increment / $num_banks)}]
++
++        lappend banks($index) [list [format 0x%llx [expr $new_addr]] $value]
++
++        incr line_count
++    }
++    # check if we unevenly distributed the entries
++    if {[expr {$line_count % $num_banks}] != 0} {
++        error "conv_mem_dump: Could not split the interleaved section, not divisible by number of banks"
++    }
++
++    array set bank_cuts {}
++
++    # adjust base address of banks
++    for {set i 0} {$i < $num_banks} {incr i} {
++        set banks($i) [adjust_addr_mem_dump $banks($i) -$interleaved_base_addr 1]
++        set slices $banks($i)
++
++        # split banks into slices
++        for {set j 0} {$j < 7} {incr j} { # cuts in bank
++            # split bank into cuts, each 4 KiB
++            set index [expr {$j  + ($i * 7)}]
++            set splitted [split_mem_dump $slices [expr {($j + 1) * 0x1000}]]
++            set slices [lindex $splitted 1]
++            set bank_cuts($index) [lindex $splitted 0]
++            set bank_cuts($index) [adjust_addr_mem_dump $bank_cuts($index) -[expr {$j * 0x1000}] 1]
++        }
++    }
++
++    # write all banks and sliced banks
++    write_mem_dump $private_bank0 [file join $out_dir/ private_bank_0]
++    write_mem_dump $private_bank1 [file join $out_dir/ private_bank_1]
++
++    foreach {index cut} [array get bank_cuts] {
++        set bank_index [expr {$index / 7}]
++        set slice_index [expr {$index % 7}]
++        write_mem_dump $cut [file join $out_dir/ "bank_${bank_index}_cut_${slice_index}"]
++    }
++
++    puts "done"
++}
++
++# read a verilog style memory dump into a list of lists, where each internal
++# lists starts with the base address and then the values that are placed on the
++# subsequent addresses
++proc read_mem_dump {name} {
++    puts "reading memory dump $name"
++    set fp [open $name]
++    #  add spaces around newline so that they are treated as a separate token
++    #  when splitting
++    set normalized [regsub -all "\n" [read $fp] " \n "]
++    # split by whitespaces (truncate multiple)
++    set tokens [regexp -all -inline {[^[:blank:]]+} $normalized]
++    # regex to recognize 4-value
++    set fourvalue {^[a-fA-F0-9xzXZ]+$}
++
++    set is_comment 0
++    set addr 0
++    # it's legal to have no addresses at all appearing the memory dump. For our
++    # internal representation we need to forge one (setting it to 0)
++    set has_init_addr 0
++    # this is the representation of the memory dump it is a list of lists, where
++    # each lists first entry is the start address and the subsequent entries are
++    # the values
++    set dump [list]
++    set dump_line [list]
++
++    foreach token $tokens {
++        # skip // comments
++        if {$token eq "//"} {
++            set is_comment 1
++        } elseif {$is_comment} {
++            if {$token eq "\n"} {
++                set is_comment 0
++            }
++        } elseif {[string match "@*" $token]}  {
++            set has_init_addr 1
++            # update address counter when seeing @hex_constant
++            set addr [string range $token 1 end]
++            # -strict prevents bogus empty string too
++            if {![string is xdigit -strict $addr]} {
++                error "read_mem_dump: address=$token is not a hex constant"
++            }
++            # check if we already have a valid parsed sequence of values
++            if {[llength $dump_line] > 0} {
++                lappend dump $dump_line
++                set dump_line {}
++            }
++            # make also sure we put it in as hex constant so that tcl doesn't
++            # blow up
++            lappend dump_line "0x$addr"
++        } elseif {[regexp $fourvalue $token]} {
++            # when we didn't see any address indicator, then we start counting
++            # assuming addr=0. This is in the sv spec.
++            if {!$has_init_addr} {
++                set has_init_addr 1
++                lappend dump_line 0
++            }
++            lappend dump_line [string tolower $token]
++        } elseif {$token eq "\n" || $token eq " "} {
++            # skip empty or newline tokens
++        } else {
++            error "read_mem_dump: unknown token: \"$token\""
++        }
++    }
++
++    # add the last line if the file wasn't empty
++    if {[llength $dump_line] > 0} {
++        lappend dump $dump_line
++    }
++
++    close $fp
++
++    # normalize memory dump (i.e. make a list of addr/value pairs). This seems
++    # to be the best storage format for conversion operations.
++    set normalized_dump [list]
++    set normalized_dump_line [list]
++    set addr 0
++    foreach dump_line $dump {
++        # read addr, make sure we convert to decimal i.e. [expr ...]
++        set addr [expr [lindex $dump_line 0]]
++        foreach token [lrange $dump_line 1 end] {
++            set normalized_dump_line [list [format 0x%llx $addr] $token]
++            lappend normalized_dump $normalized_dump_line
++            incr addr
++        }
++    }
++
++    return $normalized_dump
++}
++
++# write a verilog style memory dump. Opposite of read_mem_dump. Assume that dump
++# is a list of addr/value pair (see read_mem_dump).
++proc write_mem_dump {dump {name out.dump} {words_per_line 8} {ignore_addr false}} {
++    set fp [open $name "w"]
++
++    if {$words_per_line < 1} {
++        error "write_mem_dump: unsupported words_per_line value"
++    }
++
++    puts $fp "// generated by mem.tcl"
++    puts $fp "// depending on the parameters that were used, this might not be a correct"
++    puts $fp "// verilog style memory dump, but rather is modified to be human readable"
++
++    set word_count 0
++
++    set addr 0
++    set old_addr 0
++
++    foreach dump_line $dump {
++        if {[llength $dump_line] == 0} {
++            error "write_mem_dump: empty dump_line"
++        }
++        set addr [expr [lindex $dump_line 0]]
++        set value [lindex $dump_line 1]
++
++        if {$word_count == 0} {
++            # write new addr counter
++            puts -nonewline $fp [format "@%llx" $addr]
++            # write first value
++            puts -nonewline $fp " $value"
++
++            incr word_count
++        } else {
++            # verify that address is consecutive
++            if {[expr {$old_addr + 1}] != $addr && !$ignore_addr} {
++                puts [format "warning: old: 0x%llx new: 0x%llx" $old_addr $addr]
++                puts "warning: write_mem_dump: incomplete line, skipping and starting new line"
++                set word_count 0
++
++                # write new addr counter
++                puts $fp ""
++                puts -nonewline $fp [format "@%llx" $addr]
++            }
++
++            puts -nonewline $fp " $value"
++            if {$word_count == [expr {$words_per_line - 1}]} {
++                set word_count 0
++                puts $fp ""
++            } else {
++                incr word_count
++            }
++        }
++
++        set old_addr $addr
++    }
++
++    close $fp
++}
++
++# merge memory dumps. Fails when there are overlapping address ranges
++proc merge_mem_dump {dump0 dump1} {
++    if {[llength $dump0] == 0} {
++        error "merge_mem_dump: dump0 is empty"
++    }
++    if {[llength $dump1] == 0} {
++        error "merge_mem_dump: dump1 is empty"
++    }
++    # # the first entry of the last line is the last line's base address
++    # set ll_base_addr [lindex [lindex $dump0 end] 0]
++    # set ll_last_addr [expr ll_base_addr + [llength [lindex $dump0 end]] - 1]
++
++    # TODO: interval checking
++    error "merge_mem_dump: not implemented yet"
++}
++
++# concatenate memory dumps in a naive fashion. Does a sanity check on the
++# results for overlapping address ranges (though this is allowed)
++proc cat_mem_dump {dump0 dump1} {
++    if {[llength $dump0] == 0} {
++        # no matter, we just output $dump1
++    }
++    if {[llength $dump1] == 0} {
++        error "cat_mem_dump: dump1 is empty"
++    }
++    set line_counter 1
++    set base_addr 0
++    set increment 0
++    set end_addr -1
++
++    set cat [concat $dump0 $dump1]
++
++    # TODO: sort by addresses
++    foreach line $cat {
++        set base_addr [lindex $line 0]
++        if {$base_addr <= $end_addr} {
++            puts "warning: cat_mem_dump: overlapping address range \
++            (base_addr=$base_addr, end_addr=$end_addr) at line $line_counter"
++        }
++        # remove the base addr
++        set increment [expr [llength $line] - 1]
++        # add size - 1
++        set end_addr [expr {$base_addr + $increment - 1}]
++
++        # misc
++        incr line_counter
++    }
++
++    return $cat
++}
++
++# split memory dump at the given address
++proc split_mem_dump {dump split_addr} {
++    if {[llength $dump] == 0} {
++        error "split_mem_dump: dump is empty"
++    }
++    set line_counter 1
++    set upper {}
++    set lower {}
++
++    foreach line $dump {
++        set addr [lindex $line 0]
++        set value [lindex $line 1]
++
++        if {$addr < $split_addr} {
++            lappend upper $line
++        } else {
++            lappend lower $line
++        }
++    }
++    return [list $upper $lower]
++}
++
++# adjust base address of memory dump by offset
++# Can also scale addresses of memory dump to make them more human readable (for
++# example going from word addressing to byte addressing). Note that such a
++# change breaks verilogs $readmemh
++proc adjust_addr_mem_dump {dump offset {scale 1}} {
++    if {[llength $dump] == 0} {
++        error "adjust_addr_mem_dump: dump is empty"
++    }
++    if {![string is integer $offset]} {
++        error "adjust_addr_mem_dump: offset is not an integer"
++    }
++    # if {!([string is integer $scale] && [$scale > 0])} {
++    #     error "adjust_addr_mem_dump: scale is not a valid integer"
++    # }
++
++    # due to version constraints we refuse lmap and loop like a plebeian
++    for {set i 0} {$i < [llength $dump]} {incr i} {
++        set line [lindex $dump $i]
++        set base_addr [lindex $line 0]
++        # update base addr, make sure we store as hex
++        lset line 0 [format 0x%llx [expr {$base_addr * $scale + $offset}]]
++        lset dump $i $line
++    }
++    return $dump
++}
++
++# Scale memory addresses by scale with respect to base_addr i.e. addresses
++# are scaled as follows: (addr - base_addr) * scale + base_address
++proc scale_addr_mem_dump {dump base_addr scale_n scale_d} {
++    if {[llength $dump] == 0} {
++        error "scale_addr_mem_dump: dump is empty"
++    }
++
++    # due to version constraints we refuse lmap and loop like a plebeian
++    for {set i 0} {$i < [llength $dump]} {incr i} {
++        set line [lindex $dump $i]
++        set addr [lindex $line 0]
++        # update base addr, make sure we store as hex
++        lset line 0 [format 0x%llx \
++                         [expr {((($addr - $base_addr) / $scale_d) * $scale_n) + $base_addr}]]
++
++        lset dump $i $line
++    }
++    return $dump
++}
++
++# generate a verilog style memory dump from a list of values, formatted by
++# words_per_line and offset by base_addr
++proc list_to_mem_dump {lst {base_addr 0}} {
++    set mem_dump {}
++    set mem_dump_line {}
++
++    for {set i 0} {$i < [llength $lst]} {incr i} {
++        lappend mem_dump_line [format 0x%llx [expr {$base_addr + $i}]]
++        lappend mem_dump_line [lindex $lst $i]
++        lappend mem_dump $mem_dump_line
++        set mem_dump_line {}
++    }
++    return $mem_dump
++}
++
++# fill the given address range's holes in the memory dump with X's. Assumes the
++# memory dump has only incrementing addresses.
++# TODO doesnt work when out of range
++proc fill_mem_dump {dump base_addr end_addr {width 4}} {
++    set filled_dump {}
++    set expected_addr base_addr
++
++    set ele_index 0
++
++    for {set i $base_addr} {$i < $end_addr} {incr i} {
++        set ele [lindex $dump $ele_index]
++        set ele_addr [expr [lindex $ele 0]]
++        set ele_value [lindex $ele 1]
++
++        # puts [format "scan: 0x%llx  ele: 0x%llx" $i $ele_addr]
++        if {$i < $ele_addr} {
++            lappend filled_dump [list [format 0x%llx $i] [string repeat "xx" $width]]
++        } elseif {$i == $ele_addr} {
++            lappend filled_dump $ele
++
++            if {$ele_index < [expr [llength $dump] - 1]} {
++                incr ele_index
++            }
++        } else { # $i > $ele_addr
++            lappend filled_dump [list [format 0x%llx $i] [string repeat "xx" $width]]
++        }
++    }
++
++    return $filled_dump
++}
++
++# Change word width of memory dump, using the given endianness. Warns if dump is
++# not divisible by new word width. The addressing changes from from_width word
++# addressing to to_width word addressing, so adjustment using
++# adjust_addr_mem_dump might be needed.
++proc change_width_mem_dump {dump from_width to_width {from_endian "little"} {to_endian "little"}} {
++    if {$from_endian ne "little" && $from_endian ne "big" ||
++        $to_endian ne "little" && $to_endian ne "big"} {
++        error "change_width_mem_dump: Invalid endian argument"
++    }
++
++    if {$from_width > $to_width} {
++        error "change_width_mem_dump: Unsupported conversion values. \
++              to_width needs to be larger or equal to from_width"
++    }
++
++    if {$to_width % $from_width != 0} {
++        error "change_width_mem_dump: Unsupported conversion values. \
++              to_width needs to be divisible by from_width"
++    }
++
++    if {$from_width == $to_width && $from_endian == $to_endian} {
++        return $dump
++    }
++
++    set new_dump {}
++    # in from_width words
++    set input_len [llength $dump]
++    # in bytes
++    set input_bytes_count 0
++    set out_addr 0
++    set out_value ""
++
++    if {$input_len % $to_width != 0} {
++        error "change_width_mem_dump: input dump size is not divisible by $to_width"
++    }
++
++    foreach line $dump {
++        # strip 0x, so that we can use string concatenation for computing the full value
++        set ele $line
++        set ele_addr [expr [lindex $ele 0]]
++        set ele_value [lindex $ele 1]
++        # reorder input if the input/output endianness requires it
++        if {$from_endian eq "little" && $to_endian eq "big" ||
++            $from_endian eq "big" && $to_endian eq "little"} {
++            # reverse string each two character units
++            set ele_value [join [lreverse [regsub -all .. $ele_value {& }]] ""]
++        }
++
++        # make sure we get the correct output endianness
++        if {$to_endian eq "little"} {
++            set out_value $ele_value$out_value
++        } else {
++            set out_value $out_value$ele_value
++        }
++
++        if {[expr {$input_bytes_count % $to_width}] == [expr {$to_width - $from_width}]} {
++            lappend new_dump [list [format 0x%llx $out_addr] $out_value]
++            set out_value ""
++        } elseif {[expr {$input_bytes_count % $to_width}] == 0} {
++            set out_addr $ele_addr
++        }
++
++        incr input_bytes_count $from_width
++    }
++
++    return $new_dump
++}
++
++# Split a mem dump into banks according to some given interleaving pattern. The
++# banks will have their addressing adjusted so that they still start at
++# base_addr, but increment without holes caused by the deinterleaving. This
++# means that each memory dump can be directly loaded with $readmemh into its
++# respective memory bank. Returns an array of memory dumps.
++proc deinterleave_mem_dump {dump num_banks base_addr} {
++    array set banks {}
++    set line_count 0
++
++    foreach line $dump {
++        set addr [expr [lindex $line 0]]
++        set value [lindex $line 1]
++        set index [expr {$line_count % $num_banks}]
++
++        # rewrite bank addresses
++        set increment [expr {$addr - $base_addr}]
++        set new_addr [expr {$base_addr + ($increment / $num_banks)}]
++
++        lappend banks($index) [list [format 0x%llx [expr $new_addr]] $value]
++
++        incr line_count
++    }
++    # check if we unevenly distributed the entries
++    if {[expr {$line_count % $num_banks}] != 0} {
++        error "deinterleave_mem_dump: Could not split the interleaved section, not divisible by number of banks"
++    }
++
++    return $banks
++}
++
++
++# if this file is used as script
++if {$::argv0 eq [info script]} {
++    set mem_file [lindex $::argv 0]
++    set out_dir [lindex $::argv 1]
++
++    if {$mem_file eq "" || $out_dir eq ""} {
++        puts "mem.tcl is a script to convert verilog style memory dumps"
++        puts "usage: mem.tcl mem_file dump_file"
++        return 1
++    }
++
++    file mkdir $out_dir
++
++    pulp_conv_mem_dump $mem_file $out_dir
++
++    return 0
++}
+diff --git a/cli_test/scripts/pulpstim b/cli_test/scripts/pulpstim
+new file mode 100644
+index 0000000..ffa7bd3
+--- /dev/null
++++ b/cli_test/scripts/pulpstim
+@@ -0,0 +1,47 @@
++#!/usr/bin/env python3
++
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# pulpstim
++import argparse
++import os
++import sys
++from stim_utils import stim
++
++parser = argparse.ArgumentParser(prog='pulpstim',
++                                 description="""Generate stimuli files from ELF
++                                 files for the JTAG TAP in PULPissimo""")
++
++parser.version = '0.1'
++parser.add_argument('Path', metavar='path',
++                    type=str, help='the path to elf file')
++parser.add_argument('-o', '--output', metavar='output',
++                    type=str, help='the output file name')
++parser.add_argument('--verbose', action='store_true',
++                    help='enable verbose output')
++
++args = parser.parse_args()
++elf_file = args.Path
++
++if not os.path.isfile(elf_file):
++    print('The specified path does not exist')
++    sys.exit(1)
++
++stimuli_generator = stim(args.verbose)
++stimuli_generator.add_binary(elf_file)
++stimuli_generator.gen_stim_slm_64(args.output if args.output else 'stim.txt')
+diff --git a/cli_test/scripts/pulptrace b/cli_test/scripts/pulptrace
+new file mode 100644
+index 0000000..27b4dbb
+--- /dev/null
++++ b/cli_test/scripts/pulptrace
+@@ -0,0 +1,325 @@
++#!/usr/bin/env python3
++
++# Copyright 2019 ETH Zurich and University of Bologna
++#
++# Permission is hereby granted, free of charge, to any person obtaining a copy
++# of this software and associated documentation files (the "Software"), to deal
++# in the Software without restriction, including without limitation the rights
++# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++# copies of the Software, and to permit persons to whom the Software is
++# furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++# SOFTWARE.
++
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++# History
++# 0.1.0:
++# - initial release
++# 0.1.1:
++# - Add dot to allowable character in symbolic addresses
++
++import argparse
++import sys
++import re
++import os
++import subprocess
++from functools import reduce
++from collections import OrderedDict
++import csv
++import pprint
++
++parser = argparse.ArgumentParser(prog='pulptrace',
++                                 description="""Combine objdump information
++                                 with an instruction trace log from a pulp
++                                 core""")
++
++parser.version = '0.1.1'
++parser.add_argument('trace_file', type=str, help='trace log from a pulp core')
++parser.add_argument('elf_file', type=str,
++                    help='elf file that was ran, producing the trace log')
++parser.add_argument('-e,', '--objdump', type=str, help="""use the provided objdump
++executable""")
++parser.add_argument('-o,', '--output', type=str, help="""write to file instead of
++stdout""")
++parser.add_argument('-t', '--truncate', action='store_true',
++                    help='truncate overlong text')
++parser.add_argument('-n', '--numeric', action='store_true',
++                    help='show numeric register names')
++parser.add_argument('--no-aliases', action='store_true',
++                    help='do not use aliases for instruction names')
++parser.add_argument('--cycles', action='store_true',
++                    help='show cycle count extracted from log')
++parser.add_argument('--time', action='store_true',
++                    help='show passed time extracted from log')
++parser.add_argument('--stats', action='store_true',
++                    help='extract statistics from log')
++parser.add_argument('--range', nargs=2,
++                    help='consider only instructions in the given cycle range')
++parser.add_argument('--json', type=str,
++                    help='record stats results in json file')
++parser.add_argument('--occur', type=str,
++                    help='show occurences of given function')
++parser.add_argument('--occur-json', type=str,
++                    help='store occurences of given function in json')
++parser.add_argument('--analyze-interrupt', type=str, metavar='INTERRUPT_CSV',
++                    help="""use the given interrupt cvs for analyzing interrupt
++                    latencies""")
++parser.add_argument('--interrupt', nargs=2, metavar=('INTERRUPT_ID',
++                                                     'FUNCTION_NAME'),
++                    help="""use the given interrupt cvs for analyzing interrupt
++                    latencies""")
++parser.add_argument('--interrupt-out', type=str,
++                    help="""store collected interrupt statistics to
++                    INTERRUPT_OUT""")
++
++
++args = parser.parse_args()
++
++trace_filename = args.trace_file
++elf_filename = args.elf_file
++
++# TODO: eabi
++
++regs_map = [("x0", "zero"), ("x1", "ra"), ("x2", "sp"),
++            ("x3", "gp"), ("x4", "tp"), ("x5", "t0"),
++            ("x6", "t1"), ("x7", "t2"), ("x8", "s0"),
++            ("x9", "s1"), ("x10", "a0"), ("x11", "a1"),
++            ("x12", "a2"), ("x13", "a3"), ("x14", "a4"),
++            ("x15", "a5"), ("x16", "a6"), ("x17", "a7"),
++            ("x18", "s2"), ("x19", "s3"), ("x20", "s4"),
++            ("x21", "s5"), ("x22", "s6"), ("x23", "s7"),
++            ("x24", "s8"), ("x25", "s9"), ("x26", "s10"),
++            ("x27", "s11"), ("x28", "t3"), ("x29", "t4"),
++            ("x30", "t5"), ("x31", "t6")]
++# augment regs_map with prefixes/postfixes to prevent false positives
++# ugly, but works
++tmp_regs_map = []
++for item in regs_map:
++    k, v = item
++    tmp_regs_map.append([' ' + k, ' ' + v])
++    tmp_regs_map.append(['(' + k, '(' + v])
++    tmp_regs_map.append([k + ':', v + ':'])
++    tmp_regs_map.append([k + '=', v + '='])
++
++regs_map = tmp_regs_map
++
++# we want to replace the higher numbered register first with their alias,
++# otherwise x31 could be replaced to gp1
++regs_alias = OrderedDict(reversed(regs_map))
++objdump_insns = dict()
++# parse objdump output and generate hashmap of address and insn string
++
++objdump_bin = ''
++if args.objdump:
++    objdump_bin = args.objdump
++elif os.getenv('RISCV'):
++    objdump_bin = os.getenv('RISCV') + '/bin/' + 'riscv32-unknown-elf-objdump'
++else:
++    objdump_bin = 'riscv32-unknown-elf-objdump'
++
++with subprocess.Popen([objdump_bin, "--prefix-addresses"]
++                      + (['-Mnumeric'] if args.numeric else [])
++                      + (['-Mno-aliases'] if args.no_aliases else [])
++                      + ["-d", elf_filename],
++                      stdout=subprocess.PIPE) as proc:
++    for line in proc.stdout:
++        line = line.decode("ascii")
++        if line == '':
++            break
++        match = re.match(r'^\s*([0-9a-f]+)\s+(<[0-9a-zA-Z+_.]*>)\s+(.*)', line)
++        if match:
++            # group(1) = instruction address
++            # group(2) = instruction address symbolic
++            # group(3) = instruction name
++            objdump_insns[int(match.group(1), 16)] = (
++                match.group(2), match.group(3).replace("\t", " "))
++
++
++def truncate_string(string, length):
++    return string[:length-2] + (string[length-2:] and '..')
++
++
++# redirect to stdout to file if desired
++sys.stdout = open(args.output, "w") if args.output else sys.stdout
++
++interrupt_log = []
++# get interrupt information if provided
++if args.analyze_interrupt:
++    with open(args.analyze_interrupt, "r") as csvf:
++        next(csvf, None) # skip header
++        for interrupt in csv.reader(csvf):
++            interrupt = [str.strip(i) for i in interrupt]
++            assert interrupt[0][-2:] == 'ns', "analyze_interrupt: bad time unit"
++            if (interrupt[2]) == '1': # collect only enabled interrupt_log
++                interrupt_log.append([int(interrupt[0][:-2]),
++                                   int(interrupt[1])])
++print(interrupt_log)
++# interupts latencies we are interested in (currently only 1)
++interrupts_lat = []
++if args.interrupt:
++    interrupts_lat = [(int(args.interrupt[0]), args.interrupt[1])]
++    print(interrupts_lat)
++
++
++int_times = []
++
++with open(trace_filename, "r") as f:
++    pc = 0
++    last_irq = False
++    last_cycles = 0
++    stats = {}
++    occur = []
++    int_log_idx = 0
++    int_trace = False
++    # skip trace file "header"
++    f.readline()
++    # parse instructions
++    for line in f:
++        insn_line = line.split()
++        time = insn_line[0]
++        cycles = int(insn_line[1])
++        addr = insn_line[2]
++        # insn_bytes = insn_line[3]
++        # insn_str = insn_line[4]
++        # insn_rest = insn_line[5::]
++        reg_vals = ""
++        insn_only = ""
++
++        # check if we are in the range of interest
++        if args.range:
++            if (cycles < int(args.range[0])) or (cycles >= int(args.range[1])):
++                last_cycles = cycles
++                continue
++
++        # this is a dirty heuristic which figures out if we have register
++        # values in the trace file TODO: improve
++        bound = 80
++        if len(line) > bound:
++            reg_vals = line[bound:].strip()
++            insn_only = line[:bound-1].strip()
++
++        insn_addr = int(addr.replace("x", "0"), 16)
++
++        if not(args.numeric):
++            # TODO: this might not be reliable if we have values like x10 in
++            # the registers
++            reg_vals = reduce(lambda a, kv: a.replace(*kv),
++                              regs_alias.items(), reg_vals)
++
++        if args.time:
++            print('%-12s ' % time, end='')
++
++        if args.cycles:
++            print('%-12d ' % (int(cycles)), end='')
++
++        if args.occur and (insn_addr in objdump_insns):
++            source_location, _ = objdump_insns[insn_addr]
++            # TODO: make sure function name is wrapped with <>
++            if source_location.find(args.occur) != -1:
++                occur.append(cycles)
++
++        # find interrupt handler and trace backwards to figure out latency
++        if args.analyze_interrupt and (insn_addr in objdump_insns):
++            source_location, _ = objdump_insns[insn_addr]
++            # TODO: make sure function name is wrapped with <>
++            gtime = int(time[:-2])
++            assert time[-2:] == 'ns', "analyze_interrupt: bad time unit in log"
++            fun_name = interrupts_lat[0][1]
++            int_id = interrupts_lat[0][0]
++            if source_location.find(fun_name) != -1:
++                int_time = [x[0] for x in reversed(interrupt_log) if x[0] < gtime and x[1] == int_id][0]
++                int_times.append((int_id, fun_name, int_time, gtime, gtime-int_time))
++                print("int_time %d time %d lat %d" % (int_time, gtime, gtime - int_time))
++
++        if args.stats:
++            function_name = "unknown"
++            is_call = False
++
++            # identify type of function (call, how many insn, how many cycles)
++            if insn_addr in objdump_insns:
++                source_location, _ = objdump_insns[insn_addr]
++                function_name = source_location.split("+")
++                if len(function_name) == 1:
++                    is_call = True
++                    function_name = function_name[0][1:-1]
++                else:
++                    # extract name
++                    function_name = function_name[0][1:]
++
++            delta_cycles = cycles - last_cycles
++
++            if function_name in stats.keys():
++                if is_call:
++                    stats[function_name]['calls'] += 1
++                stats[function_name]['insns'] += 1
++                stats[function_name]['cycles'] += delta_cycles
++            else:
++                stats[function_name] = {'calls': 1,
++                                        'insns': 1,
++                                        'cycles': delta_cycles}
++
++        if insn_addr in objdump_insns:
++            source_location, objdump_insn_str = objdump_insns[insn_addr]
++            if args.truncate:
++                source_location = truncate_string(source_location, 40)
++                objdump_insn_str = truncate_string(objdump_insn_str, 40)
++            print("%08x: %-40s %-40s %-20s" % (insn_addr,
++                                               source_location,
++                                               objdump_insn_str,
++                                               reg_vals))
++        else:
++            match = re.match(r'^\s*[0-9a-f]+[nmu]s\s+[0-9]+\s+[0-9a-f]+\s+[0-9a-f]+\s+(.*)',
++                             insn_only)
++            insn_str = match.group(1)
++
++            if not(args.numeric):
++                insn_str = reduce(lambda a, kv: a.replace(*kv),
++                                  regs_alias.items(), insn_str)
++
++            print("%08x: %-40s %-40s %-20s" % (insn_addr,
++                                               "",  # no objdump info
++                                               insn_str,  # insn name
++                                               reg_vals))
++
++        # update for measurments
++        last_cycles = cycles
++
++    if args.json:
++        import json
++        with open(args.json, 'w') as jsonf:
++            json.dump(stats, jsonf, indent=4)
++
++    if args.occur_json:
++        import json
++        with open(args.occur_json, 'w') as jsonf:
++            json.dump(occur, jsonf, indent=4)
++
++    if args.interrupt_out:
++        with open(args.interrupt_out, 'w') as csvf:
++            writer = csv.writer(csvf)
++            writer.writerows(int_times)
++
++    pp = pprint.PrettyPrinter(indent=4)
++    if args.stats:
++        pp.pprint("STATS")
++        pp.pprint(stats)
++
++    if args.occur:
++        pp.pprint("Occcurences of " + args.occur)
++        pp = pprint.PrettyPrinter(indent=4)
++        pp.pprint(occur)
++
++
++if args.output:
++    sys.stdout.close()
+diff --git a/cli_test/scripts/stim_utils.py b/cli_test/scripts/stim_utils.py
+new file mode 100644
+index 0000000..acb2455
+--- /dev/null
++++ b/cli_test/scripts/stim_utils.py
+@@ -0,0 +1,405 @@
++#
++# Copyright (C) 2018 ETH Zurich, University of Bologna and GreenWaves Technologies
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++
++#
++# Authors: Germain Haugou, ETH (germain.haugou@iis.ee.ethz.ch)
++#
++
++from elftools.elf.elffile import ELFFile
++import os
++import os.path
++import struct
++
++
++
++class stim(object):
++
++
++  def __init__(self, verbose=False):
++    self.binaries = []
++    self.mem = {}
++    self.verbose = verbose
++    self.areas = []
++
++    self.dump('Created stimuli generator')
++
++  def dump(self, str):
++    if self.verbose:
++      print (str)
++
++  def add_binary(self, binary):
++    self.dump('  Added binary: %s' % binary)
++    self.binaries.append(binary)
++
++  def add_area(self, start, size):
++    self.dump('  Added target area: [0x%x -> 0x%x]' % (start, start + size))
++    self.areas.append([start, start+size])
++
++
++  def __add_mem_word(self, base, size, data, width):
++
++    aligned_base = base & ~(width - 1)
++
++    shift = base - aligned_base
++    iter_size = width - shift
++    if iter_size > size:
++      iter_size = size
++
++    value = self.mem.get(str(aligned_base))
++    if value is None:
++      value = 0
++
++    value &= ~(((1<<width) - 1) << (shift*8))
++    value |= int.from_bytes(data[0:iter_size], byteorder='little') << (shift*8)
++
++    self.mem[str(aligned_base)] = value
++
++    return iter_size
++
++
++
++
++
++  def __add_mem(self, base, size, data, width):
++
++    while size > 0:
++
++      iter_size = self.__add_mem_word(base, size, data, width)
++
++      size -= iter_size
++      base += iter_size
++      data = data[iter_size:]
++
++
++  def __gen_stim_slm(self, filename, width):
++
++    self.dump('  Generating to file: ' + filename)
++
++    try:
++      os.makedirs(os.path.dirname(filename))
++    except:
++      pass
++
++    with open(filename, 'w') as file:
++      for key in sorted(self.mem.keys()):
++        file.write('%X_%0*X\n' % (int(key), width*2, self.mem.get(key)))
++
++  def __parse_binaries(self, width):
++
++    self.mem = {}
++
++    for binary in self.binaries:
++
++        with open(binary, 'rb') as file:
++            elffile = ELFFile(file)
++
++            for segment in elffile.iter_segments():
++
++                if segment['p_type'] == 'PT_LOAD':
++
++                    data = segment.data()
++                    addr = segment['p_paddr']
++                    size = len(data)
++
++                    load = True
++                    if len(self.areas) != 0:
++                      load = False
++                      for area in self.areas:
++                        if addr >= area[0] and addr + size <= area[1]:
++                          load = True
++                          break
++
++                    if load:
++
++                      self.dump('  Handling section (base: 0x%x, size: 0x%x)' % (addr, size))
++
++                      self.__add_mem(addr, size, data, width)
++
++                      if segment['p_filesz'] < segment['p_memsz']:
++                          addr = segment['p_paddr'] + segment['p_filesz']
++                          size = segment['p_memsz'] - segment['p_filesz']
++                          self.dump('  Init section to 0 (base: 0x%x, size: 0x%x)' % (addr, size))
++                          self.__add_mem(addr, size, [0] * size, width)
++
++                    else:
++
++                      self.dump('  Bypassing section (base: 0x%x, size: 0x%x)' % (addr, size))
++
++
++
++
++  def gen_stim_slm_64(self, stim_file):
++
++    self.__parse_binaries(8)
++
++    self.__gen_stim_slm(stim_file, 8)
++
++
++  def gen_stim_bin(self, stim_file):
++
++    self.__parse_binaries(1)
++
++    try:
++      os.makedirs(os.path.dirname(stim_file))
++    except:
++      pass
++
++    with open(stim_file, 'wb') as file:
++      prev_addr = None
++      for key in sorted(self.mem.keys()):
++        addr = int(key)
++        if prev_addr is not None:
++          while prev_addr != addr - 1:
++            file.write(struct.pack('B', 0))
++            prev_addr += 1
++
++        prev_addr = addr
++        file.write(struct.pack('B', int(self.mem.get(key))))
++
++
++
++class Efuse(object):
++
++  def __init__(self, config, verbose=False):
++    self.config = config
++    self.verbose = verbose
++
++    self.dump('Created efuse stimuli generator')
++
++
++  def dump(self, str):
++    if self.verbose:
++      print (str)
++
++  def gen_stim_txt(self, filename):
++
++
++    efuses = self.config.get('**/efuse/values')
++    if efuses is None:
++      efuses = []
++    else:
++      efuses = efuses.get_dict()
++
++    nb_regs = self.config.get_child_int('**/efuse/nb_regs')
++
++    pulp_chip = self.config.get_child_str('**/chip/name')
++
++    pulp_chip_family = self.config.get_child_str('**/chip/pulp_chip_family')
++
++    if pulp_chip_family == 'gap' or pulp_chip == 'vega':
++
++      load_mode = self.config.get_child_str('**/runner/boot-mode')
++      encrypted = self.config.get_child_str('**/efuse/encrypted')
++      aes_key = self.config.get_child_str('**/efuse/aes_key')
++      aes_iv = self.config.get_child_str('**/efuse/aes_iv')
++      xtal_check = self.config.get_child_bool('**/efuse/xtal_check')
++      xtal_check_delta = self.config.get_child_bool('**/efuse/xtal_check_delta')
++      xtal_check_min = self.config.get_child_bool('**/efuse/xtal_check_min')
++      xtal_check_max = self.config.get_child_bool('**/efuse/xtal_check_max')
++      no_preload = self.config.get_child_str('**/efuse/no-preload')
++
++      # In case we boot with the classic rom mode, don't init any efuse, the boot loader will boot with the default mode
++      load_mode_hex = None
++
++      if pulp_chip == 'gap':
++
++        if load_mode == 'rom':
++          load_mode_hex = 0x3A
++        elif load_mode == 'spi':
++          load_mode_hex = 0x0A
++        elif load_mode == 'jtag':
++          load_mode_hex = 0x12
++        elif load_mode == 'rom_hyper':
++          load_mode_hex = 0x2A
++        elif load_mode == 'rom_spim_single':
++          load_mode_hex = 0x32
++        elif load_mode == 'rom_spim':
++          load_mode_hex = 0x3A
++        elif load_mode == 'jtag_dev' or load_mode == 'spi_dev':
++          load_mode_hex = None
++
++        if xtal_check:
++            if load_mode_hex == None: load_mode_hex = 0
++            load_mode_hex |= 1<<7
++            delta = int(xtal_check_delta*((1 << 15)-1))
++            efuses.append('26:0x%x' % (delta & 0xff))
++            efuses.append('27:0x%x' % ((delta >> 8) & 0xff))
++            efuses.append('28:0x%x' % (xtal_check_min))
++            efuses.append('29:0x%x' % (xtal_check_max))
++
++        if load_mode_hex != None:
++            if encrypted:
++                load_mode_hex |= 0x40
++                for i in range(0, 16):
++                    efuses.append('%d:0x%s' % (2+i, aes_key[30-i*2:32-i*2]))
++                for i in range(0, 8):
++                    efuses.append('%d:0x%s' % (18+i, aes_iv[14-i*2:16-i*2]))
++
++            efuses.append('0:%s' % load_mode_hex)
++
++      elif pulp_chip == 'vega':
++        efuses = [0] * 128
++        info2 = 0
++        info3 = 0
++        info4 = 0
++        info5 = 0
++        info6 = 0
++
++        clk_div = self.config.get_child_int('**/efuse/clkdiv')
++        fll_freq = self.config.get_child_int('**/efuse/fll/freq')
++        fll_assert_cycles = self.config.get_child_int('**/efuse/fll/assert_cycles')
++        fll_lock_tolerance = self.config.get_child_int('**/efuse/fll/lock_tolerance')
++        hyper_delay = self.config.get_child_int('**/efuse/hyper/delay')
++        hyper_latency = self.config.get_child_int('**/efuse/hyper/latency')
++
++        if load_mode == 'rom':
++          # RTL platform | flash boot | no encryption | no wait xtal
++          load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++        elif load_mode == 'rom_hyper':
++          # RTL platform | flash boot | no encryption | no wait xtal
++          load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++          # Hyperflash type
++          info3 = (1 << 0)
++        elif load_mode == 'rom_spim':
++          # RTL platform | flash boot | no encryption | no wait xtal
++          load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++          # SPI flash type
++          info3 = (0 << 0)
++        elif load_mode == 'rom_mram':
++          # RTL platform | flash boot | no encryption | no wait xtal
++          load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++          # MRAM type
++          info3 = (2 << 0)
++          # Activate MRAM TRIM CFG and fill it with dummy numbers until we get the real one. Also activate clock divider
++          info6 |= (1 << 6) | (1<<7)
++          info2 |= (2 << 3)
++          efuses[56] = 32*4
++          for i in range(0, 32):
++            efuses [57+i] = i | ((i*4+1)<<8) | ((i*4+2)<<16) | ((i*4+3)<<24)
++
++        if clk_div is not None:
++          info6 |= 1 << 7
++          info2 = (info2 & ~(3<<3)) | (clk_div << 3)
++
++
++        if fll_freq is not None:
++          info2 |= (1 << 0) | (1 << 2)
++          efuses[31] = fll_freq
++
++        if fll_lock_tolerance is not None or fll_assert_cycles is not None:
++          info2 |= (1<< 1)
++          efuses[32] = fll_lock_tolerance
++          efuses[33] = fll_assert_cycles
++
++        if hyper_delay is not None:
++          info5 |= (1<<6)
++          efuses[30] = hyper_delay
++
++        if hyper_latency is not None:
++          info5 |= (1<<7)
++          efuses[51] = hyper_latency
++
++
++
++        if load_mode_hex != None:
++            if encrypted:
++                load_mode_hex |= 0x40
++                info6 |= 1<<4
++                for i in range(0, 16):
++                    efuses[2+i] = aes_key[30-i*2:32-i*2]
++                for i in range(0, 8):
++                    efuses[18+i] = aes_iv[14-i*2:16-i*2]
++
++            efuses[0] = load_mode_hex
++
++        efuses[1] = info2
++        efuses[37] = info3
++        efuses[38] = info4
++        efuses[39] = info5
++        efuses[40] = info6
++      else:
++          info3 = 0
++          info6 = 0
++          if load_mode == 'rom':
++            # RTL platform | flash boot | no encryption | no wait xtal
++            load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++          elif load_mode == 'rom_hyper':
++            # RTL platform | flash boot | no encryption | no wait xtal
++            load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++            # Hyperflash type
++            info3 = (1 << 0)
++          elif load_mode == 'rom_spim':
++            # RTL platform | flash boot | no encryption | no wait xtal
++            load_mode_hex = 2 | (2 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)
++            # SPI flash type
++            info3 = (0 << 0)
++
++          if xtal_check:
++              if load_mode_hex == None: load_mode_hex = 0
++              load_mode_hex |= 1<<7
++              delta = int(xtal_check_delta*((1 << 15)-1))
++              efuses.append('26:0x%x' % (delta & 0xff))
++              efuses.append('27:0x%x' % ((delta >> 8) & 0xff))
++              efuses.append('28:0x%x' % (xtal_check_min))
++              efuses.append('29:0x%x' % (xtal_check_max))
++
++          if load_mode_hex != None:
++              if encrypted:
++                  load_mode_hex |= 0x40
++                  info6 |= 1<<4
++                  for i in range(0, 16):
++                      efuses.append('%d:0x%s' % (2+i, aes_key[30-i*2:32-i*2]))
++                  for i in range(0, 8):
++                      efuses.append('%d:0x%s' % (18+i, aes_iv[14-i*2:16-i*2]))
++
++              efuses.append('0:%s' % load_mode_hex)
++
++          efuses.append('1:%s' % 0)
++          efuses.append('37:%s' % (info3))
++          efuses.append('38:%s' % 0)
++          efuses.append('39:%s' % 0)
++          efuses.append('40:%s' % (info6))
++
++
++    # Efuse preloading file generation
++    if pulp_chip == 'vega':
++
++      self.dump('  Generating to file: ' + filename)
++
++      with open(filename, 'w') as file:
++        if no_preload is None or no_preload == False:
++          for efuseId in range (0, 128):
++              value = efuses[efuseId]
++              self.dump('  Writing register (index: %d, value: 0x%x)' % (efuseId, value))
++              file.write('{0:032b}\n'.format(value))
++
++
++    else:
++
++      values = [0] * nb_regs * 8
++      for efuse in efuses:
++          efuseId, value = efuse.split(':')
++          self.dump('  Writing register (index: %d, value: 0x%x)' % (int(efuseId, 0), int(value, 0)))
++          efuseId = int(efuseId, 0)
++          value = int(value, 0)
++          for index in range(0, 8):
++              if (value >> index) & 1 == 1: values[efuseId + index*128] = 1
++
++      self.dump('  Generating to file: ' + filename)
++
++      with open(filename, 'w') as file:
++          for value in values:
++              file.write('%d ' % (value))
+diff --git a/cli_test/target/core-v-mcu/core-v-mcu.c b/cli_test/target/core-v-mcu/core-v-mcu.c
+index acf08b1..5041f8c 100755
+--- a/cli_test/target/core-v-mcu/core-v-mcu.c
++++ b/cli_test/target/core-v-mcu/core-v-mcu.c
+@@ -38,7 +38,7 @@
+ #include "drivers/include/udma_i2cm_driver.h"
+ #include "drivers/include/udma_qspi_driver.h"
+ 
+-#include "../../app/N25Q_16Mb-1Gb_Device_Driver V2.1/N25Q.h"
++#include "../../app/N25Q_16Mb-1Gb_Device_Driver/N25Q.h"
+ #include "hal/include/hal_apb_i2cs.h"
+ 
+ #define FOR_SIMULATION_TESTING 0
+@@ -399,7 +399,6 @@ for (int i = 0 ; i < 32 ; i ++){
+ 		udma_qspim_control((uint8_t) i, (udma_qspim_control_type_t) kQSPImReset , (void*) 0);
+ 
+ 		lFlashID = udma_flash_readid(i,0);
+-
+ 		if( ( lFlashID == 0xFFFFFFFF ) || ( lFlashID == 0 ) )
+ 		{
+ 			gQSPIFlashPresentFlg[i] = 0;
+diff --git a/cli_test/target/core-v-mcu/core-v-mcu.ld b/cli_test/target/core-v-mcu/core-v-mcu.ld
+index 6bd365c..ce8731f 100755
+--- a/cli_test/target/core-v-mcu/core-v-mcu.ld
++++ b/cli_test/target/core-v-mcu/core-v-mcu.ld
+@@ -40,7 +40,7 @@ MEMORY
+ SECTIONS
+ {
+ 
+-  PROVIDE(__boot_address = 0x1c000880);
++  PROVIDE(__boot_address = 0x1c008080);
+   /* stack and heap related settings */
+   __stack_size = DEFINED(__stack_size) ? __stack_size : 0x800;
+   PROVIDE(__stack_size = __stack_size);
+diff --git a/cli_test/target/crt0.o b/cli_test/target/crt0.o
+deleted file mode 100755
+index 19d8849..0000000
+Binary files a/cli_test/target/crt0.o and /dev/null differ
+diff --git a/cli_test/target/makefile.mk b/cli_test/target/makefile.mk
+new file mode 100644
+index 0000000..82caef3
+--- /dev/null
++++ b/cli_test/target/makefile.mk
+@@ -0,0 +1,24 @@
++# Copyright 2020 ETH Zurich
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# SPDX-License-Identifier: Apache-2.0
++# Author: Robert Balas (balasr@iis.ee.ethz.ch)
++
++SRCS += $(dir)/crt0.S
++SRCS += $(dir)/vectors.S
++SRCS += $(dir)/core-v-mcu/core-v-mcu.c
++
++CV_CPPFLAGS += -I$(dir)/core-v-mcu/include
++
++CV_LDFLAGS += -T$(dir)/core-v-mcu/core-v-mcu.ld
+diff --git a/cli_test/target/vectors.o b/cli_test/target/vectors.o
+deleted file mode 100755
+index e4b54e2..0000000
+Binary files a/cli_test/target/vectors.o and /dev/null differ
